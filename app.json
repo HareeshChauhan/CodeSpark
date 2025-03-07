@@ -38,8 +38,8 @@
       "typedRoutes": true
     },
     "extra": {
-      "JUDGE0_API_KEY": "de5e05f3e6mshe002c4fa7cc298dp16d096jsn9b70bf4e91a5",
-      "GEMINI_API_KEY": "AIzaSyDgkrLDKDdjudV7BtqJII-YK3eovQhobFs",
+      "JUDGE0_API_KEY": "",
+      "GEMINI_API_KEY": "",
       "router": {
         "origin": false
       }

@@ -187,16 +187,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 15,
     marginHorizontal: 20,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.80)',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 1, height: 1 },
-    shadowRadius: 3,
+    
   },
   menuLeft: {
     flexDirection: 'row',

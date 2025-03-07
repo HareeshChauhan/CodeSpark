@@ -151,18 +151,18 @@ const styles = StyleSheet.create({
   },
 
   quizItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: 12,
     marginBottom: 15,
     width: '47%',
     overflow: 'hidden',
     // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    // Elevation for Android
-    elevation: 4,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.15,
+    // shadowRadius: 3,
+    // // Elevation for Android
+    // elevation: 4,
   },
   quizImage: {
     width: '100%',

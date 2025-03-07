@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 10,
     paddingHorizontal: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     alignItems:'center',
@@ -203,15 +203,15 @@ const styles = StyleSheet.create({
 
   },
   courseCard: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: 12,
     margin: 20,
     width: 300,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 3,
+    // elevation: 3,
   },
   cardImage: {
     width: '100%',

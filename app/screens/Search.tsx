@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: 'rgba(255, 255, 255, 0.87)',
     borderRadius: 10,
     paddingHorizontal: 12,
     margin: 10,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 10,
-    backgroundColor: "#fff",
+    backgroundColor: 'rgba(255, 255, 255, 0.87)',
     marginRight: 10,
   },
   selectedCategory: {
@@ -292,14 +292,10 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   courseCard: {
-    backgroundColor: "#fff",
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
     borderRadius: 12,
     margin: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    
   },
   cardImage: {
     width: "100%",

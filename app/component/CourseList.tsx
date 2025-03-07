@@ -194,16 +194,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   courseCard: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 12,
     margin: 10,
     marginLeft: 20,
     width: 300,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    
   },
   cardImage: {
     width: '100%',

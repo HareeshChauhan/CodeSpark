@@ -157,7 +157,7 @@ const CompilerScreen: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'x-rapidapi-host': 'judge029.p.rapidapi.com',
-            'x-rapidapi-key': 'de5e05f3e6mshe002c4fa7cc298dp16d096jsn9b70bf4e91a5', // Replace with your API key
+            'x-rapidapi-key': '', // Replace with your API key
           },
           body: JSON.stringify({
             source_code: code,
@@ -286,17 +286,17 @@ const styles = StyleSheet.create({
   },
   containerCard: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     margin: 15,
     borderRadius: 10,
     padding: 10,
     // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    // Elevation for Android
-    elevation: 3,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 3,
+    // // Elevation for Android
+    // elevation: 3,
   },
   containerScroll: {
     flexGrow: 1,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '60%',
-    backgroundColor: Colors.gray,
+    backgroundColor: 'rgba(197, 197, 197, 0.45)',
     borderRadius: 8,
     color: Colors.black,
   },
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     textAlignVertical: 'top',
-    color: '#d4d4d4', // Light text
+    color: Colors.white, // Light text
     fontFamily: 'monospace',
     marginBottom: 10,
     borderWidth: 1,
@@ -370,19 +370,17 @@ const styles = StyleSheet.create({
   },
   outputContainer: {
     marginTop: 10,
-    backgroundColor: '#1e1e1e', // Dark background for output
+    backgroundColor: 'rgba(30, 30, 30, 0.71)', // Dark background for output
     borderRadius: 10,
     minHeight: 80,
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#333',
   },
   outputScroll: {
     maxHeight: 120,
   },
   output: {
     fontSize: 16,
-    color: '#d4d4d4', // Light text
+    color: Colors.white, // Light text
     fontFamily: 'monospace',
   },
   clearButton: {

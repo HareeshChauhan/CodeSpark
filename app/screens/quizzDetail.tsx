@@ -15,6 +15,7 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 const db = getFirestore();
 
@@ -35,6 +36,9 @@ const QuizzDetail: React.FC = () => {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
+  
+  // State to ensure alert sound plays only once
+  const [alertPlayed, setAlertPlayed] = useState(false);
 
   // Animation for question fade-in
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -42,14 +46,13 @@ const QuizzDetail: React.FC = () => {
   // 2-minute (120 seconds) timer
   const [timeLeft, setTimeLeft] = useState(120);
 
-  // Fetch quiz data and title from Firebase
+  // Fetch quiz data from Firebase
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
         const quizDoc = await getDoc(doc(db, 'quizzes', quizId as string));
         if (quizDoc.exists()) {
           const quizData = quizDoc.data();
-          // Set the quiz title (ensure your document has a "title" field)
           setQuizTitle(quizData.title || 'Quiz');
           // Shuffle and slice to 10 questions if needed
           const shuffledQuestions = quizData.quiz.sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -66,7 +69,7 @@ const QuizzDetail: React.FC = () => {
     fetchQuizData();
   }, [quizId]);
 
-  // Animate question fade-in
+  // Animate question fade-in on index change
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -77,13 +80,13 @@ const QuizzDetail: React.FC = () => {
 
   // Timer effect: countdown from 120s -> 0
   useEffect(() => {
-    if (completed) return; // If quiz is completed, do not continue the timer
+    if (completed) return; // Stop timer if quiz is completed
 
     const intervalId = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(intervalId);
-          setCompleted(true); // Time’s up, end the quiz
+          setCompleted(true);
           return 0;
         }
         return prev - 1;
@@ -92,6 +95,30 @@ const QuizzDetail: React.FC = () => {
 
     return () => clearInterval(intervalId);
   }, [completed]);
+
+  // Play alert sound when 10 seconds are left (only once)
+  useEffect(() => {
+    if (timeLeft === 10 && !alertPlayed) {
+      playAlertSound();
+      setAlertPlayed(true);
+    }
+  }, [timeLeft, alertPlayed]);
+
+  // Function to load and play the alert sound
+  const playAlertSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sounds/alert.mp3') // Adjust the path if necessary
+      );
+      await sound.playAsync();
+      // Optionally, unload the sound after a short delay:
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 2000);
+    } catch (error) {
+      console.error('Error playing alert sound:', error);
+    }
+  };
 
   const handleAnswer = (answer: string) => {
     if (answer === questions[currentIndex].correctAns) {
@@ -135,13 +162,9 @@ const QuizzDetail: React.FC = () => {
       <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(234, 213, 245)']} style={styles.gradientContainer}>
         <View style={styles.scoreScreenContainer}>
           <View style={styles.scoreBoxContainer}>
-            {/* Trophy Icon */}
             <Ionicons name="trophy" size={80} color="#FFD700" style={styles.trophyIcon} />
-            {/* Congratulations Text + Points */}
             <Text style={styles.resultTitle}>Congratulations!</Text>
             <Text style={styles.resultScore}>You&apos;ve scored +{score * 10} points</Text>
-
-            {/* Score Row: Q total, correct, wrong */}
             <View style={styles.scoreRow}>
               <View style={styles.scoreBox}>
                 <Text style={styles.scoreLabel}>Q {totalQuestions}</Text>
@@ -161,8 +184,6 @@ const QuizzDetail: React.FC = () => {
               </View>
             </View>
           </View>
-
-          {/* New Button: Back to Quiz */}
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Back to Quiz</Text>
           </TouchableOpacity>
@@ -183,7 +204,7 @@ const QuizzDetail: React.FC = () => {
         <Text style={styles.headerTitle}>Quizz!</Text>
       </LinearGradient>
 
-      {/* Top Bar: question progress (left) + timer (right) */}
+      {/* Top Bar: question progress and timer */}
       <View style={styles.topBar}>
         <Text style={styles.topBarQuestionCount}>
           {currentIndex + 1} of {questions.length}
@@ -192,10 +213,7 @@ const QuizzDetail: React.FC = () => {
       </View>
 
       <View style={styles.quiz}>
-        {/* Quiz Title (fetched from Firebase) */}
         <Text style={styles.quizTitle}>{quizTitle}</Text>
-
-        {/* Animated question container */}
         <Animated.View style={[styles.questionContainer, { opacity: fadeAnim }]}>
           <Text style={styles.questionText}>{questions[currentIndex].question}</Text>
         </Animated.View>
@@ -231,20 +249,12 @@ const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
-
-  /***********************
-   * Loading
-   ***********************/
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF',
   },
-
-  /***********************
-   * Final Score Screen
-   ***********************/
   scoreScreenContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -300,8 +310,6 @@ const styles = StyleSheet.create({
     color: Colors.black,
     marginTop: 4,
   },
-
-  // New button on final score screen
   backButton: {
     marginTop: 30,
     backgroundColor: '#8B6FFF',
@@ -314,15 +322,6 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit-bold',
     color: '#FFF',
   },
-
-  /***********************
-   * Quiz Screen
-   ***********************/
-  quizScreenContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
   iconContainer: { position: 'absolute', top: 15, left: 20, zIndex: 1 },
   iconBadge: { backgroundColor: '#8B6FFF', padding: 8, borderRadius: 10 },
   headerTitle: { color: 'white', fontSize: 24, fontFamily: 'outfit-bold', marginVertical: 10 },
@@ -334,7 +333,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-
   topBar: {
     width: '90%',
     flexDirection: 'row',

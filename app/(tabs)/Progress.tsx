@@ -139,13 +139,14 @@ function CourseProgressScreen() {
                     </View>
                   </View>
                 </View>
-                <View style={styles.circularProgressContainer}>
+                
                   <CircularProgress
                     size={45}
                     width={5}
                     fill={progressPercentage * 100}
                     tintColor={Colors.purple}
-                    backgroundColor="lightgray"
+                    backgroundColor="rgb(241, 241, 241)"
+                    style={styles.circularProgressContainer}
                   >
                     {() => (
                       <Text style={{ color: Colors.black, fontFamily: 'outfit', fontSize: 12 }}>
@@ -153,7 +154,6 @@ function CourseProgressScreen() {
                       </Text>
                     )}
                   </CircularProgress>
-                </View>
                 <Text style={styles.progressText}>
                   {completedChapters} out of {totalChapters} chapters completed
                 </Text>
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 10,
     paddingHorizontal: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     alignItems:'center',
@@ -206,13 +206,13 @@ const styles = StyleSheet.create({
     margin: 20,
     marginBottom: 20,
     padding: 10,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.56)',
     borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 3,
+    // elevation: 5,
   },
   // progressBarBackground: {
   //   height: 8,
@@ -232,9 +232,8 @@ const styles = StyleSheet.create({
     color: Colors.purple,
   },
   circularProgressContainer: {
-    backgroundColor: Colors.white,
-    padding: 10,
-    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    
     // alignItems: 'center',
     marginBottom: 10,
     flexDirection: "row",

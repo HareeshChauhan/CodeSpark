@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 10,
     paddingHorizontal: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     alignItems:'center',
@@ -143,15 +143,11 @@ const styles = StyleSheet.create({
   /* Cards */
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: 12,
     marginHorizontal: 20,
     marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    
   },
   cardImage: {
     width: 100,
