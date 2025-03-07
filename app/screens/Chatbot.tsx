@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
   Image,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Alert,
   ScrollView,
 } from 'react-native';
@@ -20,17 +20,14 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
+import { Audio } from 'expo-av';
 
 interface Message {
   text: string;
   sender: 'user' | 'bot';
 }
 
-/**
- * AutoScrollingText wraps message text in a ScrollView.
- * When autoScroll is true, it automatically scrolls to the bottom on text updates.
- * Otherwise, the user can manually scroll the text.
- */
+// AutoScrollingText component as defined earlier
 const AutoScrollingText: React.FC<{ text: string; isBot: boolean; autoScroll: boolean }> = ({
   text,
   isBot,
@@ -71,11 +68,26 @@ const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [inputText, setInputText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  // autoScrollEnabled is used for the last bot message while text is still appending.
   const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
 
   const GEMINI_API_KEY = Constants.expoConfig?.extra?.GEMINI_API_KEY;
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  // Function to play pop sound for every touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error('Error playing pop sound:', error);
+    }
+  };
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
@@ -111,7 +123,6 @@ const Chatbot: React.FC = () => {
     let currentText = '';
     let index = 0;
 
-    // Enable auto scroll while bot is typing
     setAutoScrollEnabled(true);
 
     const interval = setInterval(() => {
@@ -130,7 +141,6 @@ const Chatbot: React.FC = () => {
         index++;
       } else {
         clearInterval(interval);
-        // Disable auto scroll after full output is generated
         setAutoScrollEnabled(false);
       }
     }, 50);
@@ -155,7 +165,13 @@ const Chatbot: React.FC = () => {
       <LinearGradient colors={['#e8daef', '#f4f6f7']} style={styles.container}>
         {/* Header */}
         <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
-          <TouchableOpacity style={styles.iconContainer} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.iconContainer}
+            onPress={async () => {
+              await playPopSound();
+              router.back();
+            }}
+          >
             <View style={styles.iconBadge}>
               <Ionicons name="arrow-back" size={24} color="white" />
             </View>
@@ -169,14 +185,19 @@ const Chatbot: React.FC = () => {
           data={messages}
           renderItem={({ item, index }) => {
             const isBot = item.sender === 'bot';
-            // For the last bot message, if it's still auto-scrolling, enable autoScroll.
             const autoScrollForThis = isBot && index === messages.length - 1 ? autoScrollEnabled : false;
             return (
               <View style={[styles.messageRow, isBot ? styles.botRow : styles.userRow]}>
                 {isBot && <Image source={require('@/assets/images/chatbot.png')} style={styles.botAvatar} />}
                 <View style={[styles.messageBubble, isBot ? styles.botBubble : styles.userBubble]}>
                   <AutoScrollingText text={item.text} isBot={isBot} autoScroll={autoScrollForThis} />
-                  <TouchableOpacity onPress={() => copyToClipboard(item.text)} style={styles.copyButton}>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      await playPopSound();
+                      copyToClipboard(item.text);
+                    }}
+                    style={styles.copyButton}
+                  >
                     <Ionicons name="copy-outline" size={16} color="#666" />
                   </TouchableOpacity>
                 </View>
@@ -185,7 +206,6 @@ const Chatbot: React.FC = () => {
           }}
           keyExtractor={(_, index) => index.toString()}
           contentContainerStyle={styles.chatContainer}
-          // No auto-scroll for the chat container; users can scroll manually.
           ListFooterComponent={
             loading ? (
               <View style={styles.loadingContainer}>
@@ -204,10 +224,20 @@ const Chatbot: React.FC = () => {
             placeholderTextColor="#999"
             value={inputText}
             onChangeText={setInputText}
-            onSubmitEditing={sendMessage}
+            onSubmitEditing={async () => {
+              await playPopSound();
+              sendMessage();
+            }}
             editable={!loading}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage} disabled={loading}>
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={async () => {
+              await playPopSound();
+              sendMessage();
+            }}
+            disabled={loading}
+          >
             {loading ? <ActivityIndicator color="#fff" /> : <Ionicons name="paper-plane" size={20} color="#fff" />}
           </TouchableOpacity>
         </View>
@@ -216,7 +246,6 @@ const Chatbot: React.FC = () => {
   );
 };
 
-/* Styles */
 const styles = StyleSheet.create({
   container: { flex: 1 },
   iconContainer: { position: 'absolute', top: 15, left: 20, zIndex: 1 },
@@ -243,12 +272,8 @@ const styles = StyleSheet.create({
   },
   userBubble: { backgroundColor: '#B28CFF' },
   botBubble: { backgroundColor: '#FFFFFF' },
-  scrollContainer: { maxHeight: 300 }, // Approximately 10 lines of text
-  messageText: {
-    fontSize: 16,
-    fontFamily: 'outfit',
-    marginRight: 20, // space for copy icon
-  },
+  scrollContainer: { maxHeight: 300 },
+  messageText: { fontSize: 16, fontFamily: 'outfit', marginRight: 20 },
   userText: { color: '#FFFFFF' },
   botText: { color: '#333333' },
   copyButton: { position: 'absolute', right: 6, bottom: 6 },
@@ -285,7 +310,7 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 42,
     height: 42,
-    borderRadius: 42 / 2,
+    borderRadius: 21,
     backgroundColor: '#B28CFF',
     alignItems: 'center',
     justifyContent: 'center',

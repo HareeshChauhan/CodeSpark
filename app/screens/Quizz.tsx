@@ -14,8 +14,8 @@ import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
-// Firestore reference
 const db = getFirestore(app);
 
 const Quizz: React.FC = () => {
@@ -42,6 +42,24 @@ const Quizz: React.FC = () => {
     fetchQuizzes();
   }, []);
 
+  // Function to play pop sound for every touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3); // Lower volume to 30%
+      await sound.playAsync();
+      // Unload the sound after playing
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error('Error playing pop sound:', error);
+    }
+  };
+
+  // Handle quiz press: navigate to quiz detail screen
   const handleQuizPress = (quiz: any) => {
     router.push({
       pathname: '/screens/quizzDetail',
@@ -49,8 +67,15 @@ const Quizz: React.FC = () => {
     });
   };
 
+  // Render each quiz item with pop sound on press
   const renderQuizItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.quizItem} onPress={() => handleQuizPress(item)}>
+    <TouchableOpacity
+      style={styles.quizItem}
+      onPress={async () => {
+        await playPopSound();
+        handleQuizPress(item);
+      }}
+    >
       <Image source={require('@/assets/images/quiz.png')} style={styles.quizImage} />
       <Text style={styles.quizTitle}>{item.title || 'Untitled Quiz'}</Text>
     </TouchableOpacity>
@@ -64,23 +89,27 @@ const Quizz: React.FC = () => {
     >
       {/* Header with back arrow */}
       <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
-                <TouchableOpacity style={styles.iconContainer} onPress={() => router.back()}>
-                  <View style={styles.iconBadge}>
-                    <Ionicons name="arrow-back" size={24} color="white" />
-                  </View>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Quizz!</Text>
-              </LinearGradient>
-        {/* Greeting text, styled like the reference image's heading */}
-        <View style={styles.header}>
-        <Text style={styles.headingText}>
-        Interactive Quiz
-        </Text>
-        {/* Subheading, to mimic the reference image's smaller text */}
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Quizz!</Text>
+      </LinearGradient>
+
+      {/* Greeting text */}
+      <View style={styles.header}>
+        <Text style={styles.headingText}>Interactive Quiz</Text>
         <Text style={styles.subHeading}>
-        Test your knowledge with engaging quizzes that reinforce your learning.
+          Test your knowledge with engaging quizzes that reinforce your learning.
         </Text>
-        </View>
+      </View>
 
       {/* Main Content */}
       {loading ? (
@@ -116,7 +145,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-
   header: {
     backgroundColor: 'transparent',
     paddingHorizontal: 15,
@@ -134,7 +162,6 @@ const styles = StyleSheet.create({
     color: '#444',
     fontFamily: 'outfit',
   },
-
   list: {
     paddingHorizontal: 15,
     paddingBottom: 20,
@@ -143,26 +170,17 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: 'space-between',
   },
-
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   quizItem: {
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: 12,
     marginBottom: 15,
     width: '47%',
     overflow: 'hidden',
-    // Shadow for iOS
-    // shadowColor: '#000',
-    // shadowOffset: { width: 0, height: 4 },
-    // shadowOpacity: 0.15,
-    // shadowRadius: 3,
-    // // Elevation for Android
-    // elevation: 4,
   },
   quizImage: {
     width: '100%',

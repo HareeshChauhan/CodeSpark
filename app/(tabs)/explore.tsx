@@ -5,41 +5,69 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Audio } from 'expo-av';
 
 export default function Explore() {
   const router = useRouter();
 
+  // Function to play pop sound on every touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3); // Lower volume to 30%
+      await sound.playAsync();
+      // Unload the sound after 1 second
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error('Error playing pop sound:', error);
+    }
+  };
+
   return (
-    <LinearGradient colors={[ "rgb(255, 145, 145)","white"]} style={styles.container}>
+    <LinearGradient colors={["rgb(255, 145, 145)","white"]} style={styles.container}>
       {/* Gradient Header with Back Arrow */}
       <LinearGradient colors={["#E60000", "#E65A5A"]} style={styles.headerContainer}>
-  <TouchableOpacity 
-    style={styles.iconContainer} 
-    onPress={() => router.replace('/(tabs)/Home')}
-  >
-    <View style={styles.iconBadge}>
-      <Ionicons name="arrow-back" size={24} color="white" />
-    </View>
-  </TouchableOpacity>
-  <Text style={styles.headerTitle}>Explore</Text>
-</LinearGradient>
+        <TouchableOpacity 
+          style={styles.iconContainer} 
+          onPress={async () => {
+            await playPopSound();
+            router.replace('/(tabs)/Home');
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Explore</Text>
+      </LinearGradient>
 
       {/* Hero Section: Characters & Intro Text */}
       <View style={styles.heroContainer}>
-  {/* <Image
-    source={require('@/assets/images/OnBording/explore-characters.png')}
-    style={styles.heroImage}
-  /> */}
-  <Text style={styles.Title}>
-    Step into the Future of Learning!
-  </Text>
-  <Text style={styles.Subtitle}>
-    Chat with AI, challenge yourself with quizzes, and code seamlessly—all in one place.
-  </Text>
-</View>
+        {/* Uncomment and adjust image source if needed */}
+        {/* <Image
+          source={require('@/assets/images/OnBording/explore-characters.png')}
+          style={styles.heroImage}
+        /> */}
+        <Text style={styles.Title}>
+          Step into the Future of Learning!
+        </Text>
+        <Text style={styles.Subtitle}>
+          Chat with AI, challenge yourself with quizzes, and code seamlessly—all in one place.
+        </Text>
+      </View>
 
       {/* Card 1: Chat */}
-      <TouchableOpacity style={styles.card} onPress={() => router.push('/screens/Chatbot')}>
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={async () => {
+          await playPopSound();
+          router.push('/screens/Chatbot');
+        }}
+      >
         <Image
           source={require('@/assets/images/chatbot.png')}
           style={styles.cardImage}
@@ -51,26 +79,37 @@ export default function Explore() {
       </TouchableOpacity>
 
       {/* Card 2: FAQ's */}
-      <TouchableOpacity style={styles.card} onPress={() => router.push('/screens/Quizz')}>
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={async () => {
+          await playPopSound();
+          router.push('/screens/Quizz');
+        }}
+      >
         <Image
           source={require('@/assets/images/quiz.png')}
           style={styles.cardImage}
         />
-        
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle}>Quiz Challenge</Text>
           <Text style={styles.cardSubtitle}>Test your knowledge with fun and interactive quizzes.</Text>
         </View>
       </TouchableOpacity>
 
-      {/* Card 3: Email */}
-      <TouchableOpacity style={styles.card} onPress={() => router.push('/screens/Compiler')}>
+      {/* Card 3: Email/Compiler */}
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={async () => {
+          await playPopSound();
+          router.push('/screens/Compiler');
+        }}
+      >
         <View style={styles.iconContainerAlt}>
           {/* <FontAwesome5 name="laptop-code" size={60} color="black" /> */}
           <Image
-          source={require("@/assets/images/OnBording/complier.png")}
-          style={styles.cardImage}
-        />
+            source={require("@/assets/images/OnBording/complier.png")}
+            style={styles.cardImage}
+          />
         </View>
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle}>Compiler</Text>
@@ -94,7 +133,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    alignItems:'center',
+    alignItems: 'center',
   },
   iconContainer: {
     position: "absolute",
@@ -147,7 +186,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginHorizontal: 20,
     marginVertical: 10,
-    
   },
   cardImage: {
     width: 100,
@@ -180,3 +218,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+

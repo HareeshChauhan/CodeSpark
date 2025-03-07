@@ -6,8 +6,6 @@ import {
   ActivityIndicator,
   StyleSheet,
   Animated,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -37,8 +35,10 @@ const QuizzDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
   
-  // State to ensure alert sound plays only once
+  // State to ensure alert sound plays only once when timer hits 10 seconds
   const [alertPlayed, setAlertPlayed] = useState(false);
+  // State to hold the background quiz sound instance
+  const [quizSound, setQuizSound] = useState<Audio.Sound | null>(null);
 
   // Animation for question fade-in
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -46,7 +46,25 @@ const QuizzDetail: React.FC = () => {
   // 2-minute (120 seconds) timer
   const [timeLeft, setTimeLeft] = useState(120);
 
-  // Fetch quiz data from Firebase
+  // Function to load and play a pop sound on every press
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      // Lower volume if needed (0.3 means 30% volume)
+      // await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      // Unload after playing
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error('Error playing pop sound:', error);
+    }
+  };
+
+  // Fetch quiz data from Firebase and play quiz start sound
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -57,6 +75,10 @@ const QuizzDetail: React.FC = () => {
           // Shuffle and slice to 10 questions if needed
           const shuffledQuestions = quizData.quiz.sort(() => 0.5 - Math.random()).slice(0, 10);
           setQuestions(shuffledQuestions);
+          // Play quiz start sound if there are questions available
+          if (shuffledQuestions.length > 0) {
+            playQuizStartSound();
+          }
         } else {
           Alert.alert('Quiz not found');
         }
@@ -104,23 +126,65 @@ const QuizzDetail: React.FC = () => {
     }
   }, [timeLeft, alertPlayed]);
 
-  // Function to load and play the alert sound
+  // When quiz is completed, stop/unload the quiz sound and exit the screen after a delay
+  useEffect(() => {
+    if (completed && quizSound) {
+      quizSound.stopAsync();
+      quizSound.unloadAsync();
+      setQuizSound(null);
+    }
+    if (completed) {
+      const exitTimer = setTimeout(() => {
+        router.back(); // Exit the screen
+      }, 3000);
+      return () => clearTimeout(exitTimer);
+    }
+  }, [completed, quizSound, router]);
+
+  // Cleanup: Stop quiz sound when user navigates back (component unmount)
+  useEffect(() => {
+    return () => {
+      if (quizSound) {
+        quizSound.stopAsync();
+        quizSound.unloadAsync();
+      }
+    };
+  }, [quizSound]);
+
+  // Function to load and play the quiz start sound (loops continuously) at a lower volume
+  const playQuizStartSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/quiz.mp3') // Adjust the path if necessary
+      );
+      setQuizSound(sound);
+      // await sound.setVolumeAsync(0.4);
+      await sound.setIsLoopingAsync(true);
+      await sound.playAsync();
+    } catch (error) {
+      console.error('Error playing quiz start sound:', error);
+    }
+  };
+
+  // Function to load and play the alert sound at a lower volume
   const playAlertSound = async () => {
     try {
       const { sound } = await Audio.Sound.createAsync(
-        require('@/assets/sounds/alert.mp3') // Adjust the path if necessary
+        require('@/assets/sound/alert.mp3') // Adjust the path if necessary
       );
+      await sound.setVolumeAsync(0.1);
       await sound.playAsync();
-      // Optionally, unload the sound after a short delay:
       setTimeout(() => {
         sound.unloadAsync();
-      }, 2000);
+      }, 5000);
     } catch (error) {
       console.error('Error playing alert sound:', error);
     }
   };
 
   const handleAnswer = (answer: string) => {
+    // Play pop sound on answer click
+    playPopSound();
     if (answer === questions[currentIndex].correctAns) {
       setScore((prev) => prev + 1);
     }
@@ -145,7 +209,6 @@ const QuizzDetail: React.FC = () => {
     seconds < 10 ? `0${seconds}` : seconds
   }`;
 
-  // LOADING SPINNER
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -154,12 +217,11 @@ const QuizzDetail: React.FC = () => {
     );
   }
 
-  // FINAL SCORE SCREEN
   if (completed) {
     const totalQuestions = questions.length;
     const wrongCount = totalQuestions - score;
     return (
-      <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(234, 213, 245)']} style={styles.gradientContainer}>
+      <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(255, 255, 255)']} style={styles.gradientContainer}>
         <View style={styles.scoreScreenContainer}>
           <View style={styles.scoreBoxContainer}>
             <Ionicons name="trophy" size={80} color="#FFD700" style={styles.trophyIcon} />
@@ -184,7 +246,13 @@ const QuizzDetail: React.FC = () => {
               </View>
             </View>
           </View>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              playPopSound();
+              router.back();
+            }}
+          >
             <Text style={styles.backButtonText}>Back to Quiz</Text>
           </TouchableOpacity>
         </View>
@@ -192,11 +260,16 @@ const QuizzDetail: React.FC = () => {
     );
   }
 
-  // QUIZ SCREEN
   return (
-    <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(234, 213, 245)']} style={styles.gradientContainer}>
+    <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(255, 255, 255)']} style={styles.gradientContainer}>
       <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
-        <TouchableOpacity style={styles.iconContainer} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() => {
+            playPopSound();
+            router.back();
+          }}
+        >
           <View style={styles.iconBadge}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </View>
@@ -204,7 +277,6 @@ const QuizzDetail: React.FC = () => {
         <Text style={styles.headerTitle}>Quizz!</Text>
       </LinearGradient>
 
-      {/* Top Bar: question progress and timer */}
       <View style={styles.topBar}>
         <Text style={styles.topBarQuestionCount}>
           {currentIndex + 1} of {questions.length}
@@ -218,7 +290,6 @@ const QuizzDetail: React.FC = () => {
           <Text style={styles.questionText}>{questions[currentIndex].question}</Text>
         </Animated.View>
 
-        {/* Options */}
         {questions[currentIndex].options.map((option) => {
           const isCorrect = selectedAnswer && option === questions[currentIndex].correctAns;
           const isWrong =
