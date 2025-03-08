@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, StatusBar } from "react-native";
 
 // 1) Import or define the HomeHeader code
 import HomeHeader from "../component/HomeHeader"; // <-- If you prefer, keep this in a separate file
@@ -13,6 +13,11 @@ export default function HomeScreen() {
   return (
     <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
       {/* Header at the top */}
+      {/* <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#0D47A1"
+      /> */}
       <HomeHeader />
 
       {/* CourseList below */}

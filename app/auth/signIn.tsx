@@ -1,4 +1,13 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, ToastAndroid, TextInput, ActivityIndicator } from 'react-native';
+import { 
+  View, 
+  Text, 
+  Image, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ToastAndroid, 
+  TextInput, 
+  ActivityIndicator 
+} from 'react-native'; 
 import React, { useContext, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -7,7 +16,33 @@ import { auth, db } from '@/config/firebaseConfig';
 import { UserDetailContext } from '@/config/UserDetailContext';
 import Colors from '@/constants/Colors';
 import useBackHandler from "@/constants/useBackHandler";
-import Ionicons from '@expo/vector-icons/Ionicons'; // Import Ionicons for eye icon
+import Ionicons from '@expo/vector-icons/Ionicons'; // For eye icon
+import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
+
+// Helper function: play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust path if necessary
+    );
+    await sound.setVolumeAsync(0.3); // 30% volume
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error("Error playing pop sound:", error);
+  }
+};
+
+// Higher-order function to wrap onPress callbacks with a pop sound effect
+const withPopSound = (callback?: () => void) => async () => {
+  await playPopSound();
+  if (callback) {
+    callback();
+  }
+};
 
 export default function SignIn() {
   useBackHandler();
@@ -16,7 +51,7 @@ export default function SignIn() {
   const [password, setPassword] = useState<string>('');
   const { setUserDetail } = useContext(UserDetailContext);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSignInClick = () => {
     setLoading(true);
@@ -40,7 +75,10 @@ export default function SignIn() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['rgb(241, 226, 255)', 'rgb(199, 227, 255)']}
+      style={styles.container}
+    >
       <Image source={require('@/assets/images/logo.png')} style={styles.logo} />
       <Text style={styles.title}>Welcome Back</Text>
       <Text style={styles.subtitle}>Sign in to continue your learning journey.</Text>
@@ -62,7 +100,7 @@ export default function SignIn() {
           secureTextEntry={!showPassword}
           style={styles.passwordInput}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+        <TouchableOpacity onPress={withPopSound(() => setShowPassword(!showPassword))}>
           <Ionicons 
             name={showPassword ? "eye-outline" : "eye-off-outline"} 
             size={24} 
@@ -71,18 +109,25 @@ export default function SignIn() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={onSignInClick} disabled={loading} style={styles.button}>
-        {!loading ? <Text style={styles.buttonText}>Sign In</Text> : 
-          <ActivityIndicator size={'large'} color={'white'} />}
+      <TouchableOpacity 
+        onPress={withPopSound(onSignInClick)} 
+        disabled={loading} 
+        style={styles.button}
+      >
+        {!loading ? (
+          <Text style={styles.buttonText}>Sign In</Text>
+        ) : (
+          <ActivityIndicator size={'large'} color={'white'} />
+        )}
       </TouchableOpacity>
 
       <View style={styles.signUpContainer}>
         <Text style={styles.signUpText}>Don't have an account? </Text>
-        <TouchableOpacity onPress={() => router.replace('../auth/singUp')}>
+        <TouchableOpacity onPress={withPopSound(() => router.replace('../auth/singUp'))}>
           <Text style={styles.signUpLink}>Sign Up Here</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 

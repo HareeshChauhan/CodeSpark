@@ -1,11 +1,12 @@
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, StatusBar } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Colors from '@/constants/Colors';
 import { auth, db } from '@/config/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
+import Colors from '@/constants/Colors';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 interface Chapter {
   chapterName: string;
@@ -22,7 +23,24 @@ interface Course {
   chapters: Chapter[];
 }
 
-function CourseView() {
+
+const courseImages: { [key: string]: any } = {
+  java: require('@/assets/images/courses/java.png'),
+  python: require('@/assets/images/courses/python.png'),
+  c: require('@/assets/images/courses/C.png'),
+  cpp: require('@/assets/images/courses/cpp.png'),
+  devops: require('@/assets/images/courses/devOps.png'),
+  cyber: require('@/assets/images/courses/cyber.png'),
+  flutter: require('@/assets/images/courses/flutter.png'),
+  javascript: require('@/assets/images/courses/javascript.png'),
+  nosql: require('@/assets/images/courses/noSql.png'),
+  sql: require('@/assets/images/courses/sql.png'),
+  react_n: require('@/assets/images/courses/react_n.png'),
+  rust: require('@/assets/images/courses/rust.png'),
+  webdev: require('@/assets/images/courses/webDev.png'),
+  default: require('@/assets/images/courses/java.png'),
+};
+function courseDetail() {
   const { courseParams } = useLocalSearchParams();
   const router = useRouter();
   const [storedCourse, setStoredCourse] = useState<Course | null>(null);
@@ -73,38 +91,91 @@ function CourseView() {
     });
   };
 
+  // Helper function to play pop sound on every touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error("Error playing pop sound:", error);
+    }
+  };
+   // Dynamically select the image based on course.image from Firebase
+   let imageKey = "default";
+   if (storedCourse?.image) {
+     imageKey = storedCourse?.image.trim().toLowerCase();
+     if (imageKey.includes(".")) {
+       imageKey = imageKey.split(".")[0];
+     }
+   }
+   const imageSource = courseImages[imageKey] || courseImages.default;
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      <LinearGradient colors={["rgb(144, 188, 255)", "white"]} style={styles.container}>
+        <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#0D47A1"
+      />
+      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.replace('/(tabs)/Home');
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Course Details</Text>
+      </LinearGradient>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </LinearGradient>
     );
   }
 
   return (
     <LinearGradient colors={["rgb(144, 188, 255)", "white"]} style={styles.container}>
-      <LinearGradient
-        colors={["#0D47A1", "#1976D2"]}
-        style={styles.headerContainer}
-      >
-        <TouchableOpacity style={styles.iconContainer} onPress={()=> router.replace('/(tabs)/Home')}>
-      {/* Notification Icon */}
-      <View style={styles.iconBadge}>
-      <Ionicons name="arrow-back" size={24} color="white" />
-        </View>
-      </TouchableOpacity>
+      <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#0D47A1"
+      />
+      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.replace('/(tabs)/Home');
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Course Details</Text>
       </LinearGradient>
 
       <ScrollView style={styles.contentContainer}>
         <View style={styles.courseCard}>
-          <Image 
-            source={require('@/assets/images/java.png')} 
+          <Image
+            source={imageSource}
             style={styles.cardImage}
           />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{storedCourse?.courseTitle}</Text>
-            
+
             <View style={styles.metaContainer}>
               <View style={styles.chapterContainer}>
                 <Ionicons name="book-outline" size={20} color={Colors.purple} />
@@ -118,13 +189,16 @@ function CourseView() {
             <Text style={styles.descriptionText}>{storedCourse?.description}</Text>
 
             <Text style={styles.sectionTitle}>Chapters</Text>
-            
+
             <View style={styles.chaptersContainer}>
               {storedCourse?.chapters.map((chapter, index) => (
                 <TouchableOpacity
                   key={chapter.chapterName}
                   style={styles.chapterItem}
-                  onPress={() => handleChapterPress(index, chapter)}
+                  onPress={async () => {
+                    await playPopSound();
+                    handleChapterPress(index, chapter);
+                  }}
                 >
                   <Text style={styles.chapterNumber}>{index + 1}.</Text>
                   <Text style={styles.chapterName}>{chapter.chapterName}</Text>
@@ -146,13 +220,11 @@ function CourseView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: 'white'
   },
   headerContainer: {
     paddingTop: 10,
@@ -160,7 +232,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    alignItems:'center',
+    alignItems: 'center',
   },
   iconContainer: {
     position: "absolute",
@@ -188,11 +260,6 @@ const styles = StyleSheet.create({
   courseCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.65)',
     borderRadius: 12,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 3,
-    // elevation: 3,
     marginBottom: 30,
   },
   cardImage: {
@@ -237,7 +304,7 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit',
     color: '#666',
     lineHeight: 24,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   chaptersContainer: {
     backgroundColor: Colors.bgColor,
@@ -251,15 +318,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 8,
     backgroundColor: 'white',
-    // borderWidth: 1,
-    // borderColor: Colors.gray,
-    // flexDirection: 'row',
-    // marginTop: 15,
-    // marginHorizontal: 20,
-    // backgroundColor: '#fff',
-    // borderRadius: 12,
-    // padding: 15,
-    // alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 2,
     shadowColor: '#000',
@@ -281,4 +339,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourseView;
+export default courseDetail;

@@ -14,6 +14,7 @@ import { auth } from '@/config/firebaseConfig';
 import { UserDetailContext } from '@/config/UserDetailContext';
 import { useRouter } from 'expo-router';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { Audio } from 'expo-av';
 
 interface UserData {
   name: string;
@@ -21,7 +22,25 @@ interface UserData {
   profileImage?: string;
 }
 
-function ProfileScreen() {
+const db = getFirestore();
+
+// Helper function to play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+    );
+    await sound.setVolumeAsync(0.3); // Lower volume to 30%
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error('Error playing pop sound:', error);
+  }
+};
+
+export default function ProfileScreen() {
   const router = useRouter();
   const { userDetail } = useContext(UserDetailContext);
   const [userData, setUserData] = useState<UserData>({ name: '', email: '', profileImage: '' });
@@ -90,14 +109,67 @@ function ProfileScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-        <MenuItem icon={<Ionicons name="bookmarks-outline" size={26} color="#5F48EA" />} title="Enrolled Courses" subtitle="Explore your all enrolled courses" onPress={() => router.push('/screens/myCourse')} />
-        <MenuItem icon={<MaterialCommunityIcons name="progress-check" size={26} color="#5F48EA" />} title="Course Progress" subtitle="See your real-time Course Progress" onPress={() => router.push('/(tabs)/Progress')} />
-        <MenuItem icon={<Octicons name="dependabot" size={26} color="#5F48EA" />} title="Chat with AI" subtitle="Solve your doubts instantly with AI-powered assistance." onPress={() => router.push('/screens/Chatbot')} />
-        <MenuItem icon={<FontAwesome5 name="laptop-code" size={26} color="#5F48EA" />} title="Compiler" subtitle="Write, compile, and run your code in multiple programming languages." onPress={() => router.push('/screens/Compiler')} />
-        <MenuItem icon={<MaterialIcons name="quiz" size={28} color="#5F48EA" />} title="Quiz Challenge" subtitle="Test your knowledge with fun and interactive quizzes." onPress={() => router.push('/screens/Quizz')} />
-        <MenuItem icon={<Ionicons name="notifications-outline" size={26} color="#5F48EA" />} title="Notifications" subtitle="Explore the important notifications" onPress={() => router.push('/screens/myCourse')} />
-        {/* <MenuItem icon={<Ionicons name="settings" size={26} color="#5F48EA" />} title="Settings" subtitle="Control the app as per your preferences" onPress={() => router.push('/screens/myCourse')} /> */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+        <MenuItem 
+          icon={<Ionicons name="bookmarks-outline" size={26} color="#5F48EA" />} 
+          title="Enrolled Courses" 
+          subtitle="Explore your all enrolled courses" 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/myCourse');
+          }} 
+        />
+        <MenuItem 
+          icon={<MaterialCommunityIcons name="progress-check" size={26} color="#5F48EA" />} 
+          title="Course Progress" 
+          subtitle="See your real-time Course Progress" 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/(tabs)/Progress');
+          }} 
+        />
+        <MenuItem 
+          icon={<Octicons name="dependabot" size={26} color="#5F48EA" />} 
+          title="Chat with AI" 
+          subtitle="Solve your doubts instantly with AI-powered assistance." 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/Chatbot');
+          }} 
+        />
+        <MenuItem 
+          icon={<FontAwesome5 name="laptop-code" size={26} color="#5F48EA" />} 
+          title="Compiler" 
+          subtitle="Write, compile, and run your code in multiple programming languages." 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/Compiler');
+          }} 
+        />
+        <MenuItem 
+          icon={<MaterialIcons name="quiz" size={28} color="#5F48EA" />} 
+          title="Quiz Challenge" 
+          subtitle="Test your knowledge with fun and interactive quizzes." 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/Quizz');
+          }} 
+        />
+        <MenuItem 
+          icon={<Ionicons name="notifications-outline" size={26} color="#5F48EA" />} 
+          title="Notifications" 
+          subtitle="Explore the important notifications" 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/myCourse');
+          }} 
+        />
+        <TouchableOpacity 
+          style={styles.signOutBtn} 
+          onPress={async () => {
+            await playPopSound();
+            handleSignOut();
+          }}
+        >
           <Ionicons name="power" size={24} color="red" />
           <Text style={styles.signOutText}>Logout</Text>
         </TouchableOpacity>
@@ -140,26 +212,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   topBar: {
+    
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginHorizontal: 20,
   },
   profileImage: {
-    width: 60,
-    height: 60,
+    width: 65,
+    height: 65,
     borderRadius: 30,
     marginRight: 16,
     backgroundColor: '#fff',
   },
   imagePlaceholder: {
-    width: 70,
-    height: 70,
+    width: 65,
+    height: 65,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -174,11 +247,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   userName: {
+    marginRight:10,
+    // paddingLeft:5,
+    // width:"90%",
     fontSize: 24,
     fontFamily: 'outfit-bold',
     color: 'white',
   },
   userEmail: {
+    marginRight:10,
+    // width:"90%",
+    // maxWidth:'90%',
     fontSize: 18,
     fontFamily: 'outfit',
     color: 'white',
@@ -192,7 +271,6 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
-    
   },
   menuLeft: {
     flexDirection: 'row',
@@ -230,4 +308,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;

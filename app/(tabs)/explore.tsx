@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
@@ -30,6 +30,7 @@ export default function Explore() {
   return (
     <LinearGradient colors={["rgb(255, 145, 145)","white"]} style={styles.container}>
       {/* Gradient Header with Back Arrow */}
+      
       <LinearGradient colors={["#E60000", "#E65A5A"]} style={styles.headerContainer}>
         <TouchableOpacity 
           style={styles.iconContainer} 
@@ -161,12 +162,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 20,
   },
-  heroImage: {
-    width: 200,
-    height: 120,
-    resizeMode: 'contain',
-    marginBottom: 10,
-  },
+  // heroImage: {
+  //   width: 200,
+  //   height: 120,
+  //   resizeMode: 'contain',
+  //   marginBottom: 10,
+  // },
   Title: {
     fontSize: 20,
     fontFamily: 'outfit-bold',

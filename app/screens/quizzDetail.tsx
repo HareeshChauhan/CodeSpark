@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -34,7 +35,7 @@ const QuizzDetail: React.FC = () => {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
-  
+
   // State to ensure alert sound plays only once when timer hits 10 seconds
   const [alertPlayed, setAlertPlayed] = useState(false);
   // State to hold the background quiz sound instance
@@ -205,15 +206,36 @@ const QuizzDetail: React.FC = () => {
   // Format timeLeft as mm:ss
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const timeDisplay = `${minutes < 10 ? `0${minutes}` : minutes}:${
-    seconds < 10 ? `0${seconds}` : seconds
-  }`;
+  const timeDisplay = `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds
+    }`;
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(255, 255, 255)']} style={styles.gradientContainer}>
+        <StatusBar
+          hidden={false}
+          barStyle="light-content"
+          backgroundColor="#5F48EA"
+        />
+        <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.iconContainer}
+            onPress={() => {
+              playPopSound();
+              router.back();
+            }}
+          >
+            <View style={styles.iconBadge}>
+              <Ionicons name="arrow-back" size={24} color="white" />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Quizz!</Text>
+        </LinearGradient>
+
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </LinearGradient>
     );
   }
 
@@ -222,6 +244,11 @@ const QuizzDetail: React.FC = () => {
     const wrongCount = totalQuestions - score;
     return (
       <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(255, 255, 255)']} style={styles.gradientContainer}>
+        <StatusBar
+                    hidden={false}
+                    barStyle="light-content"
+                    backgroundColor="rgb(156, 139, 252)"
+                  />
         <View style={styles.scoreScreenContainer}>
           <View style={styles.scoreBoxContainer}>
             <Ionicons name="trophy" size={80} color="#FFD700" style={styles.trophyIcon} />
@@ -262,6 +289,11 @@ const QuizzDetail: React.FC = () => {
 
   return (
     <LinearGradient colors={['rgb(156, 139, 252)', 'rgb(255, 255, 255)']} style={styles.gradientContainer}>
+      <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#5F48EA"
+      />
       <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}
@@ -324,7 +356,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF',
   },
   scoreScreenContainer: {
     flex: 1,

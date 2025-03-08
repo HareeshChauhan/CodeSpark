@@ -12,6 +12,7 @@ import {
   Platform,
   Alert,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
@@ -162,6 +163,11 @@ const Chatbot: React.FC = () => {
       style={{ flex: 1 }}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
     >
+      <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#5F48EA"
+      />
       <LinearGradient colors={['#e8daef', '#f4f6f7']} style={styles.container}>
         {/* Header */}
         <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>

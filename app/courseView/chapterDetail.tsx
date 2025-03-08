@@ -1,11 +1,12 @@
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  useWindowDimensions, 
-  StyleSheet 
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  useWindowDimensions,
+  StyleSheet,
+  StatusBar
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,6 +15,7 @@ import { auth, db } from '@/config/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 interface Topic {
   topic: string;
@@ -147,11 +149,38 @@ function ChapterDetail() {
     }
   };
 
+  // Helper function to play pop sound on touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error("Error playing pop sound:", error);
+    }
+  };
+
   return (
-    <LinearGradient colors={["rgb(191, 163, 255)","white", "white"]} style={styles.container}>
+    <LinearGradient colors={["rgb(191, 163, 255)", "white", "white"]} style={styles.container}>
       {/* Header */}
+      <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="rgb(78, 31, 189)"
+      />
       <LinearGradient colors={["rgb(78, 31, 189)", "#6A5AE0"]} style={styles.headerContainer}>
-        <TouchableOpacity style={styles.iconContainer} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
           <View style={styles.iconBadge}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </View>
@@ -198,16 +227,35 @@ function ChapterDetail() {
       {/* Bottom Buttons */}
       <View style={styles.buttonContainer}>
         {currentTopicIndex > 0 && (
-          <TouchableOpacity style={styles.button} onPress={handlePreviousTopic}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={async () => {
+              await playPopSound();
+              handlePreviousTopic();
+            }}
+          >
             <Text style={styles.buttonText}>Previous</Text>
           </TouchableOpacity>
         )}
         {currentTopicIndex < totalTopics - 1 ? (
-          <TouchableOpacity style={[styles.button, styles.nextButton]} onPress={handleNextTopic}>
+          <TouchableOpacity
+            style={[styles.button, styles.nextButton]}
+            onPress={async () => {
+              await playPopSound();
+              handleNextTopic();
+            }}
+          >
             <Text style={styles.buttonText}>Next Topic</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.button} onPress={handleFinish} disabled={loading}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={async () => {
+              await playPopSound();
+              handleFinish();
+            }}
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (

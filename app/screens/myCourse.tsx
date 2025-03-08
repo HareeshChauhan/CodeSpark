@@ -1,20 +1,22 @@
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  Image, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  StyleSheet 
-} from 'react-native';
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { auth, db } from '@/config/firebaseConfig'; // Ensure correct Firebase config import
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  StatusBar,
+} from 'react-native';
+import { auth, db } from '@/config/firebaseConfig';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Entypo from '@expo/vector-icons/Entypo';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 interface Course {
   courseTitle: string;
@@ -25,9 +27,40 @@ interface Course {
   noOfChapter: string;
   chapters: Array<any>;
 }
-
+const courseImages: { [key: string]: any } = {
+  'java': require('@/assets/images/courses/java.png'),
+  'python': require('@/assets/images/courses/python.png'),
+  'c': require('@/assets/images/courses/C.png'),
+  'cpp': require('@/assets/images/courses/cpp.png'),
+  'devops': require('@/assets/images/courses/devOps.png'),
+  'cyber': require('@/assets/images/courses/cyber.png'),
+  'flutter': require('@/assets/images/courses/flutter.png'),
+  'javascript': require('@/assets/images/courses/javascript.png'),
+  'nosql': require('@/assets/images/courses/noSql.png'),
+  'sql': require('@/assets/images/courses/sql.png'),
+  'react_n': require('@/assets/images/courses/react_n.png'),
+  'rust': require('@/assets/images/courses/rust.png'),
+  'webdev': require('@/assets/images/courses/webDev.png'),
+  default: require('@/assets/images/java.png'),
+};
 const ratingList = [4.5, 4.7, 3.5, 4.3, 3.7];
 const getRandomRating = () => ratingList[Math.floor(Math.random() * ratingList.length)];
+
+// Helper function to play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust path if necessary
+    );
+    await sound.setVolumeAsync(0.3); // Lower volume to 30%
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error('Error playing pop sound:', error);
+  }
+};
 
 export default function EnrolledCoursesScreen() {
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
@@ -85,9 +118,17 @@ export default function EnrolledCoursesScreen() {
     const courseTitle = item.courseTitle || 'No Title Available';
     const rating = getRandomRating();
     const lectures = parseInt(item.noOfChapter, 10) || 0;
+    const imageKey = item.image ? item.image.trim().toLowerCase() : 'default';
+    const imageSource = courseImages[imageKey] || courseImages.default;
     return (
-      <TouchableOpacity style={styles.courseCard} onPress={() => navigateToCourseDetails(item)}>
-        <Image source={require('@/assets/images/java.png')} style={styles.cardImage} />
+      <TouchableOpacity
+        style={styles.courseCard}
+        onPress={async () => {
+          await playPopSound();
+          navigateToCourseDetails(item);
+        }}
+      >
+        <Image source={imageSource} style={styles.cardImage} />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{courseTitle}</Text>
           <Text style={styles.cardDescription} numberOfLines={2}>
@@ -112,27 +153,68 @@ export default function EnrolledCoursesScreen() {
 
   if (isLoading) {
     return (
+      <LinearGradient colors={["rgb(114, 171, 255)", "white"]} style={styles.container}>
+      {/* Header with back arrow */}
+      <StatusBar
+              hidden={false}
+              barStyle="light-content"
+              backgroundColor="rgb(11, 103, 240)"
+            />
+      <LinearGradient
+        colors={["rgb(11, 103, 240)", "rgb(60, 138, 255)"]}
+        style={styles.headerContainer}
+      >
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Enrolled Courses</Text>
+      </LinearGradient>
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007BFF" />
       </View>
+      </LinearGradient>
     );
   }
 
   return (
     <LinearGradient colors={["rgb(114, 171, 255)", "white"]} style={styles.container}>
       {/* Header with back arrow */}
+      <StatusBar
+              hidden={false}
+              barStyle="light-content"
+              backgroundColor="rgb(11, 103, 240)"
+            />
       <LinearGradient
-              colors={["rgb(11, 103, 240)", "rgb(60, 138, 255)"]}
-              style={styles.headerContainer}
-            >
-              <TouchableOpacity style={styles.iconContainer} onPress={()=> router.back()}>
-            {/* Notification Icon */}
-            <View style={styles.iconBadge}>
+        colors={["rgb(11, 103, 240)", "rgb(60, 138, 255)"]}
+        style={styles.headerContainer}
+      >
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
+          <View style={styles.iconBadge}>
             <Ionicons name="arrow-back" size={24} color="white" />
-              </View>
-            </TouchableOpacity>
-              <Text style={styles.headerTitle}>Enrolled Courses</Text>
-            </LinearGradient>
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Enrolled Courses</Text>
+      </LinearGradient>
+      <View style={styles.heroContainer}>
+        <Text style={styles.Title}>See your Enrolled Courses</Text>
+        <Text style={styles.Subtitle}>
+          Your learning journey begins now! 🚀 First steps matter most
+        </Text>
+      </View>
 
       {enrolledCourses.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -166,10 +248,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    alignItems:'center',
+    alignItems: 'center',
   },
   iconContainer: {
-    position: "absolute" as 'absolute',
+    position: "absolute",
     top: 15,
     left: 20,
     zIndex: 1,
@@ -185,7 +267,25 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: "outfit-bold",
     marginVertical: 10,
-    // marginLeft: 50,
+  },
+  heroContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom:10,
+    paddingHorizontal: 10,
+  },
+  Title: {
+    fontSize: 20,
+    fontFamily: 'outfit-bold',
+    color: 'black',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  Subtitle: {
+    fontSize: 16,
+    fontFamily: 'outfit',
+    color: Colors.black,
+    textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,
@@ -199,19 +299,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContainer: {
-    alignItems:'center'
-
+    alignItems: 'center',
   },
   courseCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: 12,
     margin: 20,
     width: 300,
-    // shadowColor: '#000',
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 3,
-    // elevation: 3,
   },
   cardImage: {
     width: '100%',
@@ -225,7 +319,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontFamily: 'outfit-bold',
-    marginBottom: 3,
+    marginBottom: 5,
   },
   cardDescription: {
     fontSize: 14,

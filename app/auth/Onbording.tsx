@@ -1,8 +1,31 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, ImageProps, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Onboarding from 'react-native-onboarding-swiper'; // ✅ Remove incorrect OnboardingRef import
+import Onboarding from 'react-native-onboarding-swiper';
 import { useRouter } from 'expo-router';
 import useBackHandler from "@/constants/useBackHandler";
+import { Audio } from 'expo-av';
+
+// Helper function: play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust path if necessary
+    );
+    await sound.setVolumeAsync(0.3); // Lower volume to 30%
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error('Error playing pop sound:', error);
+  }
+};
+
+// Higher-order function to wrap onPress handlers with a pop sound
+const withPopSound = (onPress?: () => void) => async () => {
+  await playPopSound();
+  if (onPress) onPress();
+};
 
 // Custom Animated Image Component
 const AnimatedImage: React.FC<ImageProps> = (props) => {
@@ -35,13 +58,13 @@ const AnimatedImage: React.FC<ImageProps> = (props) => {
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const onboardingRef = useRef<Onboarding | null>(null); // ✅ Use correct ref type
+  const onboardingRef = useRef<Onboarding | null>(null);
 
   return (
     <Onboarding
-      ref={onboardingRef} // ✅ Assign ref to Onboarding
-      onSkip={() => router.replace('../auth/singUp')}
-      onDone={() => router.replace('../auth/singUp')}
+      ref={onboardingRef}
+      onSkip={withPopSound(() => router.replace('../auth/singUp'))}
+      onDone={withPopSound(() => router.replace('../auth/singUp'))}
       containerStyles={styles.container}
       bottomBarHighlight={false}
       pages={[
@@ -96,20 +119,24 @@ export default function OnboardingScreen() {
       ]}
       showSkip
       showNext
-      DoneButtonComponent={() => <CustomButton text="Get Started" onPress={() => router.replace('../auth/singUp')} />}
+      DoneButtonComponent={() => (
+        <CustomButton text="Get Started" onPress={() => router.replace('../auth/singUp')} />
+      )}
       NextButtonComponent={() => (
         <CustomButton text="Next" onPress={() => onboardingRef.current?.goNext?.()} />
-      )} 
-      SkipButtonComponent={() => <CustomButton text="Skip" onPress={() => router.replace('../auth/singUp')} />}
+      )}
+      SkipButtonComponent={() => (
+        <CustomButton text="Skip" onPress={() => router.replace('../auth/singUp')} />
+      )}
       titleStyles={styles.title}
       subTitleStyles={styles.subtitle}
     />
   );
 }
 
-// Custom Button Component with Navigation
+// Custom Button Component with Navigation wrapped with pop sound
 const CustomButton = ({ text, onPress }: { text: string; onPress?: () => void }) => (
-  <TouchableOpacity style={styles.button} onPress={onPress}>
+  <TouchableOpacity style={styles.button} onPress={withPopSound(onPress)}>
     <Text style={styles.buttonText}>{text}</Text>
   </TouchableOpacity>
 );
@@ -134,8 +161,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 4 },
     shadowRadius: 4,
     alignItems: 'center',
-    margin:5,
-    },
+    margin: 5,
+  },
   buttonText: {
     color: 'white',
     fontSize: 16,

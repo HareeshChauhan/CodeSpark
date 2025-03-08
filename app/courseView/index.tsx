@@ -1,4 +1,14 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { 
+  View, 
+  Text, 
+  Image, 
+  ScrollView, 
+  TouchableOpacity, 
+  ActivityIndicator, 
+  Alert, 
+  StyleSheet, 
+  StatusBar 
+} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { auth, db } from '@/config/firebaseConfig';
@@ -6,6 +16,7 @@ import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
 import Colors from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 interface Chapter {
   chapterName: string;
@@ -20,6 +31,24 @@ interface Course {
   noOfChapter: string;
   chapters: Chapter[];
 }
+
+// Mapping from normalized image key to local asset
+const courseImages: { [key: string]: any } = {
+  java: require('@/assets/images/courses/java.png'),
+  python: require('@/assets/images/courses/python.png'),
+  c: require('@/assets/images/courses/C.png'),
+  cpp: require('@/assets/images/courses/cpp.png'),
+  devops: require('@/assets/images/courses/devOps.png'),
+  cyber: require('@/assets/images/courses/cyber.png'),
+  flutter: require('@/assets/images/courses/flutter.png'),
+  javascript: require('@/assets/images/courses/javascript.png'),
+  nosql: require('@/assets/images/courses/noSql.png'),
+  sql: require('@/assets/images/courses/sql.png'),
+  react_n: require('@/assets/images/courses/react_n.png'),
+  rust: require('@/assets/images/courses/rust.png'),
+  webdev: require('@/assets/images/courses/webDev.png'),
+  default: require('@/assets/images/courses/java.png'),
+};
 
 function CourseView() {
   const { courseParams } = useLocalSearchParams();
@@ -54,7 +83,10 @@ function CourseView() {
     if (!user || !course) return;
     setIsLoading(true);
     try {
-      const courseRef = doc(collection(db, `users/${user.uid}/enrolledCourses`), course.courseTitle);
+      const courseRef = doc(
+        collection(db, `users/${user.uid}/enrolledCourses`),
+        course.courseTitle
+      );
       await setDoc(courseRef, {
         ...course,
         enrolledAt: new Date().toISOString(),
@@ -75,7 +107,23 @@ function CourseView() {
   };
 
   const toggleChaptersList = () => {
-    setIsChaptersVisible(prev => !prev);
+    setIsChaptersVisible((prev) => !prev);
+  };
+
+  // Helper function to play pop sound on every press
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      // await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error("Error playing pop sound:", error);
+    }
   };
 
   if (!course) {
@@ -86,30 +134,46 @@ function CourseView() {
     );
   }
 
+  // Dynamically select the image based on course.image from Firebase
+  let imageKey = "default";
+  if (course.image) {
+    imageKey = course.image.trim().toLowerCase();
+    if (imageKey.includes(".")) {
+      imageKey = imageKey.split(".")[0];
+    }
+  }
+  const imageSource = courseImages[imageKey] || courseImages.default;
+
   return (
     <LinearGradient colors={["rgb(144, 188, 255)", "white"]} style={styles.container}>
-      <LinearGradient
-        colors={["#0D47A1", "#1976D2"]}
-        style={styles.headerContainer}
-      >
-        <TouchableOpacity style={styles.iconContainer} onPress={()=> router.replace('/(tabs)/Home')}>
-      {/* Notification Icon */}
-      <View style={styles.iconBadge}>
-      <Ionicons name="arrow-back" size={24} color="white" />
-        </View>
-      </TouchableOpacity>
+      <StatusBar
+        hidden={false}
+        barStyle="light-content"
+        backgroundColor="#0D47A1"
+      />
+      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
+        <TouchableOpacity 
+          style={styles.iconContainer} 
+          onPress={async () => {
+            await playPopSound();
+            router.replace('/(tabs)/Home');
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Course Details</Text>
       </LinearGradient>
 
       <ScrollView style={styles.contentContainer}>
         <View style={styles.courseCard}>
           <Image 
-            source={require('@/assets/images/java.png')} 
+            source={imageSource} 
             style={styles.cardImage}
           />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{course.courseTitle}</Text>
-            
             <View style={styles.metaContainer}>
               <View style={styles.chapterContainer}>
                 <Ionicons name="book-outline" size={20} color={Colors.purple} />
@@ -127,7 +191,10 @@ function CourseView() {
                 styles.enrollButton,
                 isEnrolled && styles.enrolledButton
               ]}
-              onPress={isEnrolled ? startLearning : enrollCourse}
+              onPress={async () => {
+                await playPopSound();
+                isEnrolled ? startLearning() : enrollCourse();
+              }}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -140,7 +207,10 @@ function CourseView() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={toggleChaptersList}
+              onPress={async () => {
+                await playPopSound();
+                toggleChaptersList();
+              }}
               style={styles.chaptersToggle}
             >
               <Text style={styles.toggleText}>
@@ -177,14 +247,14 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center" as 'center',
-    alignItems: "center" as 'center',
-    backgroundColor: 'white'
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: 'white',
   },
   errorText: {
     fontFamily: 'outfit',
     fontSize: 16,
-    color: Colors.black
+    color: Colors.black,
   },
   headerContainer: {
     paddingTop: 10,
@@ -195,7 +265,7 @@ const styles = StyleSheet.create({
     alignItems:'center',
   },
   iconContainer: {
-    position: "absolute" as 'absolute',
+    position: "absolute",
     top: 15,
     left: 20,
     zIndex: 1,
@@ -211,27 +281,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: "outfit-bold",
     marginVertical: 10,
-    // marginLeft: 50,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 10,
-    // marginTop: 20,
-    paddingTop:20,
-    
+    paddingTop: 20,
   },
   courseCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.65)',
     borderRadius: 12,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 3,
-    // elevation: 3,
     marginBottom: 30,
   },
   cardImage: {
-    width: "100%" as '100%',
+    width: "100%",
     height: 200,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
@@ -246,14 +308,14 @@ const styles = StyleSheet.create({
     color: Colors.black,
   },
   metaContainer: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'space-between' as 'space-between',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 5,
   },
   chapterContainer: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   chapterText: {
     fontSize: 16,
@@ -278,7 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.purple,
     borderRadius: 10,
     padding: 15,
-    alignItems: 'center' as 'center',
+    alignItems: 'center',
     marginBottom: 15,
   },
   enrolledButton: {
@@ -290,9 +352,9 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit-bold',
   },
   chaptersToggle: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'space-between' as 'space-between',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: Colors.bgColor,
     borderRadius: 10,
     padding: 15,
@@ -309,8 +371,8 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   chapterItem: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   chapterNumber: {

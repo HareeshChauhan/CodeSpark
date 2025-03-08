@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { app } from '@/config/firebaseConfig';
@@ -87,6 +88,11 @@ const Quizz: React.FC = () => {
       colors={['#E0C3FC', '#8EC5FC']}
       style={styles.gradientContainer}
     >
+      <StatusBar
+              hidden={false}
+              barStyle="light-content"
+              backgroundColor="#5F48EA"
+            />
       {/* Header with back arrow */}
       <LinearGradient colors={['#5F48EA', '#7B5FFF']} style={styles.headerContainer}>
         <TouchableOpacity

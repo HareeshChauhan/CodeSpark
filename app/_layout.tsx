@@ -9,43 +9,45 @@ import { getDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/config/firebaseConfig";
 import { UserDetailContext } from "@/config/UserDetailContext";
 
+
 export default function RootLayout() {
   useFonts({
     'outfit': require('@/assets/fonts/Outfit-Regular.ttf'),
     'outfit-bold': require('@/assets/fonts/Outfit-Bold.ttf')
   });
   const theme = useColorScheme();
-  const router = useRouter();
+  // const router = useRouter();
   
   // Explicitly type userDetail as DocumentData or null
   const [userDetail, setUserDetail] = useState<DocumentData | null>(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (user) {
-        const result = await getDoc(doc(db, "users", user.email || ""));
-        if (result.exists()) {
-          setUserDetail(result.data());
-        }
-        router.replace("../(tabs)/Home");
-      } else {
-        const timer = setTimeout(() => {
-          router.replace("../auth/Onbording");
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+  //     if (user) {
+  //       const result = await getDoc(doc(db, "users", user.email || ""));
+  //       if (result.exists()) {
+  //         setUserDetail(result.data());
+  //       }
+  //       router.replace("../(tabs)/Home");
+  //     } else {
+  //       const timer = setTimeout(() => {
+  //         router.replace("../auth/Onbording");
+  //       }, 3000);
+  //       return () => clearTimeout(timer);
+  //     }
+  //   });
+  //   return () => unsubscribe();
+  // }, [router]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+        {/* <StatusBar hidden /> */}
         <StatusBar
-          hidden={false}
-          barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
-          backgroundColor={theme === 'dark' ? '#121212' : '#FFF'}
-        />
+  hidden={false}
+  barStyle="dark-content"
+  backgroundColor="#FFF"
+/>
         <Stack screenOptions={{ headerShown: false }}>
           {/* Your routes or screens would go here */}
         </Stack>

@@ -1,15 +1,47 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, ToastAndroid, TextInput } from 'react-native';
-import { ActivityIndicator } from 'react-native';
+import { 
+  View, 
+  Text, 
+  Image, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ToastAndroid, 
+  TextInput, 
+  ActivityIndicator 
+} from 'react-native'; 
 import React, { useContext, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/config/firebaseConfig';
 import { UserDetailContext } from '@/config/UserDetailContext';
 import { User } from "firebase/auth";
 import Colors from '@/constants/Colors';
 import useBackHandler from "@/constants/useBackHandler";
-import Ionicons from '@expo/vector-icons/Ionicons';// Import Ionicons for eye icon
+import Ionicons from '@expo/vector-icons/Ionicons'; // For eye icon
+import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
+
+// Helper function to play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust path if necessary
+    );
+    await sound.setVolumeAsync(0.3); // Set volume to 30%
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error("Error playing pop sound:", error);
+  }
+};
+
+// Higher-order function to wrap onPress callbacks with a pop sound effect
+const withPopSound = (callback?: () => void) => async () => {
+  await playPopSound();
+  if (callback) callback();
+};
 
 export default function SignUp() {
   useBackHandler();
@@ -19,7 +51,7 @@ export default function SignUp() {
   const [password, setPassword] = useState('');
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     if (!fullName) {
@@ -77,7 +109,10 @@ export default function SignUp() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['rgb(241, 226, 255)', 'rgb(199, 227, 255)']}
+      style={styles.container}
+    >
       <Image source={require('@/assets/images/logo.png')} style={styles.logo} />
       <Text style={styles.title}>Create New Account</Text>
       <Text style={styles.subtitle}>Let's get your learning journey started.</Text>
@@ -105,7 +140,7 @@ export default function SignUp() {
           secureTextEntry={!showPassword}
           style={styles.passwordInput}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+        <TouchableOpacity onPress={withPopSound(() => setShowPassword(!showPassword))}>
           <Ionicons 
             name={showPassword ? "eye-outline" : "eye-off-outline"} 
             size={24} 
@@ -114,18 +149,25 @@ export default function SignUp() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={CreateNewAccount} disabled={loading} style={styles.button}>
-        {!loading ? <Text style={styles.buttonText}>Create Account</Text> :
-          <ActivityIndicator size={'large'} color={'white'} />}
+      <TouchableOpacity 
+        onPress={withPopSound(CreateNewAccount)} 
+        disabled={loading} 
+        style={styles.button}
+      >
+        {!loading ? (
+          <Text style={styles.buttonText}>Create Account</Text>
+        ) : (
+          <ActivityIndicator size={'large'} color={'white'} />
+        )}
       </TouchableOpacity>
 
       <View style={styles.signInContainer}>
         <Text style={styles.signInText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => router.replace('../auth/signIn')}>
+        <TouchableOpacity onPress={withPopSound(() => router.replace('../auth/signIn'))}>
           <Text style={styles.signInLink}>Sign In Here</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -210,4 +252,3 @@ const styles = StyleSheet.create({
     marginLeft: 5 
   },
 });
-

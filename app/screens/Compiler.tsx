@@ -8,12 +8,14 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 
 interface LanguageOption {
   label: string;
@@ -139,7 +141,24 @@ const CompilerScreen: React.FC = () => {
 
   const showInputField = codeRequiresInput(language, code);
 
-  const handleLanguageChange = (selectedLanguage: string) => {
+  // Function to play pop sound for every touch
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error('Error playing pop sound:', error);
+    }
+  };
+
+  const handleLanguageChange = async (selectedLanguage: string) => {
+    await playPopSound();
     setLanguage(selectedLanguage);
     setCode(defaultCodeSnippets[selectedLanguage]);
     setUserInput('');
@@ -157,7 +176,7 @@ const CompilerScreen: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'x-rapidapi-host': 'judge029.p.rapidapi.com',
-            'x-rapidapi-key': '', // Replace with your API key
+            'x-rapidapi-key': 'YOUR_RAPIDAPI_KEY', // Replace with your API key
           },
           body: JSON.stringify({
             source_code: code,
@@ -178,12 +197,23 @@ const CompilerScreen: React.FC = () => {
 
   return (
     <LinearGradient
-    colors={["rgb(150, 192, 255)", "white","rgb(150, 192, 255)"]}
+      colors={["rgb(150, 192, 255)", "white", "rgb(150, 192, 255)"]}
       style={styles.gradientWrapper}
     >
-      {/* Header with gradient (light theme) */}
+      <StatusBar
+                    hidden={false}
+                    barStyle="light-content"
+                    backgroundColor="rgb(11, 103, 240)"
+                  />
+      {/* Header with gradient */}
       <LinearGradient colors={["rgb(11, 103, 240)", "rgb(60, 138, 255)"]} style={styles.headerContainer}>
-        <TouchableOpacity style={styles.iconContainer} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
           <View style={styles.iconBadge}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </View>
@@ -199,7 +229,9 @@ const CompilerScreen: React.FC = () => {
             <Picker
               selectedValue={language}
               mode="dropdown"
-              onValueChange={handleLanguageChange}
+              onValueChange={async (selectedLanguage) => {
+                await handleLanguageChange(selectedLanguage);
+              }}
               style={styles.picker}
             >
               {languages.map((lang) => (
@@ -207,7 +239,14 @@ const CompilerScreen: React.FC = () => {
               ))}
             </Picker>
 
-            <TouchableOpacity style={styles.runButton} onPress={handleCompile} disabled={loading}>
+            <TouchableOpacity
+              style={styles.runButton}
+              onPress={async () => {
+                await playPopSound();
+                handleCompile();
+              }}
+              disabled={loading}
+            >
               {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Run Code</Text>}
             </TouchableOpacity>
           </View>
@@ -244,7 +283,13 @@ const CompilerScreen: React.FC = () => {
           <View style={styles.outputSection}>
             <View style={styles.outputHeader}>
               <Text style={styles.label}>Output:</Text>
-              <TouchableOpacity style={styles.clearButton} onPress={() => setOutput('')}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={async () => {
+                  await playPopSound();
+                  setOutput('');
+                }}
+              >
                 <Text style={styles.clearText}>Clear</Text>
               </TouchableOpacity>
             </View>
@@ -261,11 +306,9 @@ const CompilerScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  gradientWrapper: {
-    flex: 1,
-  },
+  gradientWrapper: { flex: 1 },
   iconContainer: { position: 'absolute', top: 15, left: 20, zIndex: 1 },
-  iconBadge: { backgroundColor: "rgb(79, 149, 255)", padding: 8, borderRadius: 10 },
+  iconBadge: { backgroundColor: Colors.primary, padding: 8, borderRadius: 10 },
   headerTitle: { color: 'white', fontSize: 24, fontFamily: 'outfit-bold', marginVertical: 10 },
   headerContainer: {
     paddingTop: 10,
@@ -275,31 +318,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  
-  backButton: {
-    marginRight: 10,
-  },
-  headerText: {
-    fontFamily: 'outfit-bold',
-    fontSize: 22,
+  picker: {
+    width: '60%',
+    backgroundColor: 'rgba(197, 197, 197, 0.45)',
+    borderRadius: 8,
     color: Colors.black,
-  },
-  containerCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    margin: 15,
-    borderRadius: 10,
-    padding: 10,
-    // Shadow for iOS
-    // shadowColor: '#000',
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 3,
-    // // Elevation for Android
-    // elevation: 3,
-  },
-  containerScroll: {
-    flexGrow: 1,
   },
   topBar: {
     flexDirection: 'row',
@@ -307,48 +330,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  picker: {
-    width: '60%',
-    backgroundColor: 'rgba(197, 197, 197, 0.45)',
-    borderRadius: 8,
-    color: Colors.black,
-  },
   runButton: {
     backgroundColor: Colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 8,
   },
-  buttonText: {
-    fontSize: 16,
-    color: '#fff',
-    fontFamily: 'outfit-bold',
-  },
-  editorLabel: {
-    fontSize: 16,
-    fontFamily: 'outfit-bold',
-    marginBottom: 6,
-    color: '#333',
-  },
+  buttonText: { fontSize: 16, color: '#fff', fontFamily: 'outfit-bold' },
+  editorLabel: { fontSize: 16, fontFamily: 'outfit-bold', marginBottom: 6, color: '#333' },
   codeInput: {
     height: 180,
-    backgroundColor: '#1e1e1e', // Dark background for code editor
+    backgroundColor: '#1e1e1e',
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
     textAlignVertical: 'top',
-    color: Colors.white, // Light text
+    color: Colors.white,
     fontFamily: 'monospace',
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#333',
   },
-  label: {
-    fontSize: 16,
-    fontFamily: 'outfit-bold',
-    marginTop: 10,
-    color: '#333',
-  },
+  label: { fontSize: 16, fontFamily: 'outfit-bold', marginTop: 10, color: '#333' },
   inputField: {
     height: 50,
     backgroundColor: Colors.gray,
@@ -360,9 +363,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontFamily: 'monospace',
   },
-  outputSection: {
-    marginTop: 10,
-  },
+  outputSection: { marginTop: 10 },
   outputHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -370,29 +371,30 @@ const styles = StyleSheet.create({
   },
   outputContainer: {
     marginTop: 10,
-    backgroundColor: 'rgba(30, 30, 30, 0.71)', // Dark background for output
+    backgroundColor: 'rgba(30, 30, 30, 0.71)',
     borderRadius: 10,
     minHeight: 80,
     padding: 12,
   },
-  outputScroll: {
-    maxHeight: 120,
-  },
-  output: {
-    fontSize: 16,
-    color: Colors.white, // Light text
-    fontFamily: 'monospace',
-  },
+  outputScroll: { maxHeight: 120 },
+  output: { fontSize: 16, color: Colors.white, fontFamily: 'monospace' },
   clearButton: {
     backgroundColor: Colors.green,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 5,
   },
-  clearText: {
-    fontSize: 16,
-    fontFamily: 'outfit-bold',
-    color: '#FFF',
+  clearText: { fontSize: 16, fontFamily: 'outfit-bold', color: '#FFF' },
+  // New styles for the container card and its scroll content
+  containerCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    margin: 15,
+    borderRadius: 10,
+    padding: 10,
+  },
+  containerScroll: {
+    flexGrow: 1,
   },
 });
 

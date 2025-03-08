@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useCallback } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react'; 
 import {
   View,
   Text,
@@ -14,12 +14,10 @@ import { app, auth } from '@/config/firebaseConfig';
 import Colors from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import useBackHandler from "@/constants/useBackHandler";
+import { Audio } from 'expo-av';
 
-// Initialize Firestore
 const db = getFirestore(app);
 
-// Define TypeScript interface for Course data
 interface Course {
   id: string;
   courseTitle: string;
@@ -27,23 +25,54 @@ interface Course {
   noOfChapter?: number;
   type?: string;
   category?: string;
+  image?: string; // The image file name fetched from Firebase
 }
 
-// Categories including "popular"
 const categories: string[] = ['popular', 'coding', 'development', 'database', 'new Tech'];
 
-// Random rating list
+// Mapping from image file name to local asset
+const courseImages: { [key: string]: any } = {
+  'java': require('@/assets/images/courses/java.png'),
+  'python': require('@/assets/images/courses/python.png'),
+  'c': require('@/assets/images/courses/C.png'),
+  'cpp': require('@/assets/images/courses/cpp.png'),
+  'devops': require('@/assets/images/courses/devOps.png'),
+  'cyber': require('@/assets/images/courses/cyber.png'),
+  'flutter': require('@/assets/images/courses/flutter.png'),
+  'javascript': require('@/assets/images/courses/javascript.png'),
+  'nosql': require('@/assets/images/courses/noSql.png'),
+  'sql': require('@/assets/images/courses/sql.png'),
+  'react_n': require('@/assets/images/courses/react_n.png'),
+  'rust': require('@/assets/images/courses/rust.png'),
+  'webdev': require('@/assets/images/courses/webDev.png'),
+  default: require('@/assets/images/java.png'),
+};
+
 const ratingList = [4.5, 4.7, 3.5, 4.3, 3.7];
 const getRandomRating = () => ratingList[Math.floor(Math.random() * ratingList.length)];
 
+// Helper: Play pop sound
+const playPopSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+    );
+    await sound.setVolumeAsync(0.3);
+    await sound.playAsync();
+    setTimeout(() => {
+      sound.unloadAsync();
+    }, 1000);
+  } catch (error) {
+    console.error('Error playing pop sound:', error);
+  }
+};
+
 export default function CourseList() {
-  // useBackHandler();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Fetch courses from Firestore
     const fetchCourses = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'courses'));
@@ -70,32 +99,44 @@ export default function CourseList() {
     const docSnap = await getDoc(courseRef);
 
     if (docSnap.exists()) {
-        router.push({
-          pathname: '../courseView/courseDetail', // Redirect to Course Detail Screen
-          params: {
-            courseParams: JSON.stringify(item),
-          },
-        });
-      } else {
-        // Otherwise, redirect to Course View screen
-        router.push({
-          pathname: '../courseView', // Redirect to Course View Screen
-          params: {
-            courseParams: JSON.stringify(item),
-          },
-        });
-      }
+      router.push({
+        pathname: '../courseView/courseDetail', // Redirect to Course Detail Screen
+        params: {
+          courseParams: JSON.stringify(item),
+        },
+      });
+    } else {
+      router.push({
+        pathname: '../courseView', // Redirect to Course View Screen
+        params: {
+          courseParams: JSON.stringify(item),
+        },
+      });
+    }
   };
 
-  // Memoized Course Card to prevent unnecessary re-renders
+  // Memoized Course Card with dynamic image selection using the Firebase "image" field
   const MemoizedCourseCard = memo(({ item }: { item: Course }) => {
     const courseTitle = item.courseTitle || 'No Title Available';
     const rating = item.rating || getRandomRating();
     const lectures = item.noOfChapter || 0;
+    
+    // Log the image name for debugging purposes
+ 
+    
+    // Use the image name from Firebase (trimmed and lowercased) to select the correct asset
+    const imageKey = item.image ? item.image.trim().toLowerCase() : 'default';
+    const imageSource = courseImages[imageKey] || courseImages.default;
 
     return (
-      <TouchableOpacity style={styles.courseCard} onPress={() => handleCoursePress(item)}>
-        <Image source={require('@/assets/images/java.png')} style={styles.cardImage} />
+      <TouchableOpacity
+        style={styles.courseCard}
+        onPress={async () => {
+          await playPopSound();
+          handleCoursePress(item);
+        }}
+      >
+        <Image source={imageSource} style={styles.cardImage} />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{courseTitle}</Text>
           <View style={styles.row}>
@@ -111,10 +152,8 @@ export default function CourseList() {
     );
   });
 
-  // Memoized render function for FlatList
   const renderCourseItem = useCallback(({ item }: { item: Course }) => <MemoizedCourseCard item={item} />, []);
 
-  // Function to render star icons
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -129,7 +168,6 @@ export default function CourseList() {
     return stars;
   };
 
-  // Filter courses by category
   const getCoursesByCategory = (cat: string) => {
     if (cat === 'popular') {
       return courses.filter((course) => course.type === 'popular');
@@ -137,7 +175,6 @@ export default function CourseList() {
     return courses.filter((course) => course.category === cat);
   };
 
-  // Render each course section
   const renderCourseSection = (cat: string) => {
     const catCourses = getCoursesByCategory(cat);
     if (catCourses.length === 0) return null;
@@ -168,7 +205,7 @@ export default function CourseList() {
   }
 
   return (
-    <ScrollView  style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {categories.map((cat) => renderCourseSection(cat))}
     </ScrollView>
   );
@@ -177,7 +214,7 @@ export default function CourseList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:"rgba(255, 255, 255, 0)",
+    backgroundColor: "rgba(255, 255, 255, 0)",
   },
   loadingContainer: {
     flex: 1,
@@ -199,7 +236,6 @@ const styles = StyleSheet.create({
     margin: 10,
     marginLeft: 20,
     width: 300,
-    
   },
   cardImage: {
     width: '100%',

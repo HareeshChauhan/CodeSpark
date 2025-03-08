@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";  
 import {
   Text,
   View,
@@ -9,6 +9,7 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import { db, auth } from "@/config/firebaseConfig";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
@@ -17,9 +18,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { Audio } from "expo-av";
 
 const ratingList = [4.5, 4.7, 3.5, 4.3, 3.7];
-const getRandomRating = () => ratingList[Math.floor(Math.random() * ratingList.length)];
+const getRandomRating = () =>
+  ratingList[Math.floor(Math.random() * ratingList.length)];
 
 const Index: React.FC = () => {
   const router = useRouter();
@@ -29,6 +32,24 @@ const Index: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const categories = ["All", "Coding", "Development", "Database", "New Tech"];
+
+  // Mapping from normalized image key to local asset.
+  const courseImages: { [key: string]: any } = {
+    java: require("@/assets/images/courses/java.png"),
+    python: require("@/assets/images/courses/python.png"),
+    c: require("@/assets/images/courses/C.png"),
+    cpp: require("@/assets/images/courses/cpp.png"),
+    devops: require("@/assets/images/courses/devOps.png"),
+    cyber: require("@/assets/images/courses/cyber.png"),
+    flutter: require("@/assets/images/courses/flutter.png"),
+    javascript: require("@/assets/images/courses/javascript.png"),
+    nosql: require("@/assets/images/courses/noSql.png"),
+    sql: require("@/assets/images/courses/sql.png"),
+    react_n: require("@/assets/images/courses/react_n.png"),
+    rust: require("@/assets/images/courses/rust.png"),
+    webdev: require("@/assets/images/courses/webDev.png"),
+    default: require("@/assets/images/courses/java.png"),
+  };
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -56,13 +77,12 @@ const Index: React.FC = () => {
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch = searchQuery
-      ? course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase())
+      ? course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase()) // Search across all courses
       : true;
 
-    const matchesCategory = searchQuery
-      ? true
-      : selectedCategory === "All" ||
-        course.category?.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCategory =
+      searchQuery || selectedCategory === "All" || // Ignore category if searching
+      course.category?.toLowerCase() === selectedCategory.toLowerCase();
 
     return matchesSearch && matchesCategory;
   });
@@ -91,7 +111,6 @@ const Index: React.FC = () => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const halfStar = rating - fullStars >= 0.5;
-
     for (let i = 0; i < fullStars; i++) {
       stars.push(<Ionicons key={`star-${i}`} name="star" size={16} color="#FFD700" />);
     }
@@ -101,28 +120,134 @@ const Index: React.FC = () => {
     return stars;
   };
 
+  // Helper function to play pop sound
+  const playPopSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sound/pop.mp3') // Adjust the path if necessary
+      );
+      await sound.setVolumeAsync(0.3);
+      await sound.playAsync();
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, 1000);
+    } catch (error) {
+      console.error("Error playing pop sound:", error);
+    }
+  };
+
+  // Render each course item with dynamic image selection and pop sound on press
+  const renderCourseItem = ({ item }: { item: any }) => {
+    // Normalize the image name from Firebase
+    let imageKey = "default";
+    if (item.image) {
+      imageKey = item.image.trim().toLowerCase();
+      if (imageKey.includes(".")) {
+        imageKey = imageKey.split(".")[0];
+      }
+    }
+    const imageSource = courseImages[imageKey] || courseImages.default;
+
+    return (
+      <TouchableOpacity
+        style={styles.courseCard}
+        onPress={async () => {
+          await playPopSound();
+          await handleCoursePress(item);
+        }}
+      >
+        <Image source={imageSource} style={styles.cardImage} />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {item.courseTitle || "No Title Available"}
+          </Text>
+          <View style={styles.metaContainer}>
+            <View style={styles.ratingContainer}>
+              {renderStars(item.rating)}
+              <Text style={styles.ratingText}>
+                {item.rating?.toFixed(1) || "4.5"}
+              </Text>
+            </View>
+            <View style={styles.chapterContainer}>
+              <Ionicons name="book-outline" size={16} color="#666" />
+              <Text style={styles.chapterText}>
+                {item.noOfChapter ? `${item.noOfChapter} Chapters` : "No Chapters"}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderCourseSection = (cat: string) => {
+    const catCourses = courses.filter((course) => {
+      const matchesSearch = searchQuery
+        ? course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      const matchesCategory =
+        selectedCategory === "All" ||
+        course.category?.toLowerCase() === selectedCategory.toLowerCase();
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        (cat === "popular"
+          ? course.type === "popular"
+          : course.category?.toLowerCase() === cat.toLowerCase())
+      );
+    });
+    if (catCourses.length === 0) return null;
+    const isPopular = cat === "popular";
+    const title = isPopular
+      ? "Must Try Courses"
+      : `${cat.charAt(0).toUpperCase() + cat.slice(1)} Courses`;
+    return (
+      <View key={cat} style={styles.sectionContainer}>
+        <Text style={styles.sectionHeader}>{title}</Text>
+        <FlatList
+          data={catCourses}
+          renderItem={renderCourseItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        />
+      </View>
+    );
+  };
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.loadingContainer}>
+      <StatusBar
+              hidden={false}
+              barStyle="light-content"
+              backgroundColor="rgb(142, 187, 255)"
+            />
         <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
     <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
-      <LinearGradient
-        colors={["#0D47A1", "#1976D2"]}
-        style={styles.headerContainer}
-      >
-        <TouchableOpacity style={styles.iconContainer} onPress={()=>router.back()}>
-      {/* Notification Icon */}
-      <View style={styles.iconBadge}>
-      <Ionicons name="arrow-back" size={24} color="white" />
-        </View>
-      </TouchableOpacity>
+      <StatusBar
+              hidden={false}
+              barStyle="light-content"
+              backgroundColor="#0D47A1"
+            />
+      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={async () => {
+            await playPopSound();
+            router.back();
+          }}
+        >
+          <View style={styles.iconBadge}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </View>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Search</Text>
-
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -133,12 +258,7 @@ const Index: React.FC = () => {
           />
           <Ionicons name="search" size={24} color={Colors.primary} />
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryScroll}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
@@ -146,7 +266,10 @@ const Index: React.FC = () => {
                 styles.categoryButton,
                 selectedCategory === category && styles.selectedCategory,
               ]}
-              onPress={() => setSelectedCategory(category)}
+              onPress={async () => {
+                await playPopSound();
+                setSelectedCategory(category);
+              }}
             >
               <Text
                 style={[
@@ -160,54 +283,17 @@ const Index: React.FC = () => {
           ))}
         </ScrollView>
       </LinearGradient>
-
       <FlatList
         data={filteredCourses}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Entypo
-              style={styles.noResultsIcon}
-              name="open-book"
-              size={90}
-              color={Colors.black}
-            />
+            <Entypo style={styles.noResultsIcon} name="open-book" size={90} color={Colors.black} />
             <Text style={styles.noResults}>No courses found</Text>
           </View>
         )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.courseCard}
-            onPress={() => handleCoursePress(item)}
-          >
-            <Image
-              source={require("@/assets/images/java.png")}
-              style={styles.cardImage}
-            />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                {item.courseTitle || "No Title Available"}
-              </Text>
-              <View style={styles.metaContainer}>
-                <View style={styles.ratingContainer}>
-                  {renderStars(item.rating)}
-                  <Text style={styles.ratingText}>
-                    {item.rating?.toFixed(1) || "4.5"}
-                  </Text>
-                </View>
-                <View style={styles.chapterContainer}>
-                  <Ionicons name="book-outline" size={16} color="#666" />
-                  <Text style={styles.chapterText}>
-                    {item.noOfChapter
-                      ? `${item.noOfChapter} Chapters`
-                      : "No Chapters"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => renderCourseItem({ item })}
       />
     </LinearGradient>
   );
@@ -216,7 +302,7 @@ const Index: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor:"rgba(255, 255, 255, 0)",
   },
   loadingContainer: {
     flex: 1,
@@ -230,19 +316,8 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  iconContainer: {
-    flexDirection: "row",
-    position: "absolute",
-    top: 15,
-    left: 0,
-  },
-  iconBadge: {
-    position: "relative",
-    marginLeft: 10,
-    backgroundColor: "#1976D2",
-    padding: 8,
-    borderRadius: 10,
-  },
+  iconContainer: { flexDirection: "row", position: "absolute", top: 15, left: 0 },
+  iconBadge: { position: "relative", marginLeft: 10, backgroundColor: "#1976D2", padding: 8, borderRadius: 10 },
   headerTitle: {
     color: "white",
     fontSize: 24,
@@ -291,11 +366,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 20,
   },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 100,
+  },
+  noResultsIcon: { textAlign: "center", marginBottom: 10 },
+  noResults: {
+    fontFamily: "outfit-bold",
+    textAlign: "center",
+    fontSize: 26,
+    color: Colors.black,
+  },
   courseCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    backgroundColor: "rgba(255, 255, 255, 0.65)",
     borderRadius: 12,
     margin: 10,
-    
+    marginLeft: 20,
+    width: 300,
   },
   cardImage: {
     width: "100%",
@@ -304,12 +393,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 12,
   },
   cardContent: {
-    padding: 15,
+    padding: 10,
   },
   cardTitle: {
     fontSize: 20,
     fontFamily: "outfit-bold",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   metaContainer: {
     flexDirection: "row",
@@ -336,21 +425,14 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontFamily: "outfit",
   },
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 100,
+  sectionContainer: {
+    marginVertical: 10,
+    paddingHorizontal: 10,
   },
-  noResultsIcon: {
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  noResults: {
+  sectionHeader: {
+    fontSize: 24,
     fontFamily: "outfit-bold",
-    textAlign: "center",
-    fontSize: 26,
-    color: Colors.black,
+    marginBottom: 10,
   },
 });
 
