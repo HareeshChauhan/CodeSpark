@@ -1,26 +1,24 @@
 import React from "react";
 import { View, StyleSheet, StatusBar } from "react-native";
-
-// 1) Import or define the HomeHeader code
-import HomeHeader from "../component/HomeHeader"; // <-- If you prefer, keep this in a separate file
-// 2) Import or define the CourseList code
-import CourseList from "../component/CourseList"; // <-- If you prefer, keep this in a separate file
+import HomeHeader from "../component/HomeHeader";
+import CourseList from "../component/CourseList";
 import { LinearGradient } from "expo-linear-gradient";
 import useBackHandler from "@/constants/useBackHandler";
+import Ai from "../component/Ai"; // Import Ai component
 
 export default function HomeScreen() {
-  // useBackHandler();
   return (
     <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
-      {/* Header at the top */}
-      {/* <StatusBar
-        hidden={false}
-        barStyle="light-content"
-        backgroundColor="#0D47A1"
-      /> */}
+      {/* Status Bar */}
+      {/* <StatusBar hidden={false} barStyle="light-content" backgroundColor="#0D47A1" /> */}
+
+      {/* AI Back Button */}
+      <Ai />
+
+      {/* Header */}
       <HomeHeader />
 
-      {/* CourseList below */}
+      {/* Course List */}
       <CourseList />
     </LinearGradient>
   );
@@ -29,6 +27,5 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
   },
 });

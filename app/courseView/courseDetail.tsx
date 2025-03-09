@@ -7,6 +7,7 @@ import Colors from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
+import Ai from "../component/Ai"; 
 
 interface Chapter {
   chapterName: string;
@@ -25,7 +26,7 @@ interface Course {
 
 
 const courseImages: { [key: string]: any } = {
-  java: require('@/assets/images/courses/java.png'),
+  java: require('@/assets/images/courses/javap.png'),
   python: require('@/assets/images/courses/python.png'),
   c: require('@/assets/images/courses/C.png'),
   cpp: require('@/assets/images/courses/cpp.png'),
@@ -38,7 +39,7 @@ const courseImages: { [key: string]: any } = {
   react_n: require('@/assets/images/courses/react_n.png'),
   rust: require('@/assets/images/courses/rust.png'),
   webdev: require('@/assets/images/courses/webDev.png'),
-  default: require('@/assets/images/courses/java.png'),
+  default: require('@/assets/images/javap.png'),
 };
 function courseDetail() {
   const { courseParams } = useLocalSearchParams();
@@ -152,6 +153,7 @@ function courseDetail() {
         barStyle="light-content"
         backgroundColor="#0D47A1"
       />
+      <Ai/>
       <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}

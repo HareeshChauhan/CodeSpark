@@ -16,6 +16,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
+import Ai from "../component/Ai"; 
 
 interface Topic {
   topic: string;
@@ -173,6 +174,7 @@ function ChapterDetail() {
         barStyle="light-content"
         backgroundColor="rgb(78, 31, 189)"
       />
+      <Ai/>
       <LinearGradient colors={["rgb(78, 31, 189)", "#6A5AE0"]} style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}
@@ -361,12 +363,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 10,
     paddingHorizontal: 15,
-    paddingBottom: 15,
+    paddingBottom: 5,
   },
   button: {
     flex: 1,
     backgroundColor: '#6A5AE0',
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 24,
     borderRadius: 25,
     elevation: 5,
@@ -381,7 +383,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'outfit-bold',
   },
 });

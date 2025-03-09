@@ -35,7 +35,7 @@ const Index: React.FC = () => {
 
   // Mapping from normalized image key to local asset.
   const courseImages: { [key: string]: any } = {
-    java: require("@/assets/images/courses/java.png"),
+    java: require("@/assets/images/courses/javap.png"),
     python: require("@/assets/images/courses/python.png"),
     c: require("@/assets/images/courses/C.png"),
     cpp: require("@/assets/images/courses/cpp.png"),
@@ -48,7 +48,7 @@ const Index: React.FC = () => {
     react_n: require("@/assets/images/courses/react_n.png"),
     rust: require("@/assets/images/courses/rust.png"),
     webdev: require("@/assets/images/courses/webDev.png"),
-    default: require("@/assets/images/courses/java.png"),
+    default: require("@/assets/images/javap.png"),
   };
 
   useEffect(() => {

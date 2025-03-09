@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
+import Ai from "../component/Ai"; 
 
 interface LanguageOption {
   label: string;
@@ -176,7 +177,7 @@ const CompilerScreen: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'x-rapidapi-host': 'judge029.p.rapidapi.com',
-            'x-rapidapi-key': 'YOUR_RAPIDAPI_KEY', // Replace with your API key
+            'x-rapidapi-key': 'your API key', // Replace with 
           },
           body: JSON.stringify({
             source_code: code,
@@ -206,6 +207,7 @@ const CompilerScreen: React.FC = () => {
                     backgroundColor="rgb(11, 103, 240)"
                   />
       {/* Header with gradient */}
+      <Ai/>
       <LinearGradient colors={["rgb(11, 103, 240)", "rgb(60, 138, 255)"]} style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}
