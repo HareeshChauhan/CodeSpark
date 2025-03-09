@@ -46,7 +46,8 @@ const styles = StyleSheet.create({
     bottom: 40,
     right: 10,
     zIndex: 1,
-    borderRadius:25,
+    borderRadius:50,
+    backgroundColor:'rgb(142, 187, 255)'
   },
   iconBadge: {
     backgroundColor: "rgba(255, 255, 255, 0)",

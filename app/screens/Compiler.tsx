@@ -177,7 +177,7 @@ const CompilerScreen: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'x-rapidapi-host': 'judge029.p.rapidapi.com',
-            'x-rapidapi-key': 'your API key', // Replace with 
+            'x-rapidapi-key': 'de5e05f3e6mshe002c4fa7cc298dp16d096jsn9b70bf4e91a5', // Replace with 
           },
           body: JSON.stringify({
             source_code: code,
