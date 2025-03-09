@@ -2,7 +2,7 @@
   "expo": {
     "name": "CodeSpark",
     "slug": "CodeSpark",
-    "version": "1.0.0",
+    "version": "1.2",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "myapp",
@@ -39,6 +39,9 @@
       "GEMINI_API_KEY":"your API key",
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "0f218cd1-b351-4a35-a3cb-8ec2dab845bf"
       }
   }
 }

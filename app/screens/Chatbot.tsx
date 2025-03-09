@@ -71,7 +71,7 @@ const Chatbot: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
 
-  const GEMINI_API_KEY = Constants.expoConfig?.extra?.GEMINI_API_KEY;
+  const GEMINI_API_KEY = "AIzaSyAb12eZ4GAn3tPIBQZxZfNLCo5LLgpZCK8";
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // Function to play pop sound for every touch
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   loadingText: { marginLeft: 8, fontSize: 18, color: Colors.purple, fontFamily: 'outfit' },
   inputContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
     left: 0,
     right: 0,
     padding: 10,
@@ -302,6 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1,
+    
   },
   input: {
     flex: 1,

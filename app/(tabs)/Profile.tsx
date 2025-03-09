@@ -163,6 +163,15 @@ export default function ProfileScreen() {
             router.push('/screens/myCourse');
           }} 
         />
+        <MenuItem 
+          icon={<MaterialIcons name="developer-mode" size={24} color="black" />} 
+          title="Developer Profile" 
+          subtitle="View detailed information about the developer" 
+          onPress={async () => {
+            await playPopSound();
+            router.push('/screens/devloper');
+          }} 
+        />
         <TouchableOpacity 
           style={styles.signOutBtn} 
           onPress={async () => {
@@ -173,6 +182,11 @@ export default function ProfileScreen() {
           <Ionicons name="power" size={24} color="red" />
           <Text style={styles.signOutText}>Logout</Text>
         </TouchableOpacity>
+
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>App Version: 0.2.0</Text>
+        </View>
+
       </ScrollView>
     </LinearGradient>
   );
@@ -305,6 +319,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'red',
     fontFamily: 'outfit-bold',
+  },
+  versionContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  versionText: {
+    fontSize: 14,
+    color: '#777',
   },
 });
 
