@@ -43,15 +43,15 @@ export default function Ai() {
 const styles = StyleSheet.create({
   iconContainer: {
     position: "absolute",
-    bottom: 40,
+    bottom: 50,
     right: 10,
     zIndex: 1,
     borderRadius:25,
   },
   iconBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0)",
+    backgroundColor: "rgb(144, 188, 255)",
     // padding: 5,
-    borderRadius:25,
+    borderRadius:50,
   },
   Image:{
     width:70,

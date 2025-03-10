@@ -26,20 +26,20 @@ interface Course {
 
 
 const courseImages: { [key: string]: any } = {
-  java: require('@/assets/images/courses/javap.png'),
-  python: require('@/assets/images/courses/python.png'),
-  c: require('@/assets/images/courses/C.png'),
-  cpp: require('@/assets/images/courses/cpp.png'),
-  devops: require('@/assets/images/courses/devOps.png'),
-  cyber: require('@/assets/images/courses/cyber.png'),
-  flutter: require('@/assets/images/courses/flutter.png'),
-  javascript: require('@/assets/images/courses/javascript.png'),
-  nosql: require('@/assets/images/courses/noSql.png'),
-  sql: require('@/assets/images/courses/sql.png'),
-  react_n: require('@/assets/images/courses/react_n.png'),
-  rust: require('@/assets/images/courses/rust.png'),
-  webdev: require('@/assets/images/courses/webDev.png'),
-  default: require('@/assets/images/javap.png'),
+  'javaprogramming': require('@/assets/images/courses/bannerj.png'),
+  'python': require('@/assets/images/courses/bannerpython.png'),
+  'c': require('@/assets/images/courses/bannerc.png'),
+  'cpp': require('@/assets/images/courses/bannercpp.png'),
+  'devops': require('@/assets/images/courses/bannerdevops.png'),
+  'cyber': require('@/assets/images/courses/bannercyber.png'),
+  'flutter': require('@/assets/images/courses/bannerflutter.png'),
+  'javascriptprogramming': require('@/assets/images/courses/bannerjavascript.png'),
+  'nosqldatabase': require('@/assets/images/courses/bannerns.png'),
+  'sqldatabase': require('@/assets/images/courses/banners.png'),
+  'react_n': require('@/assets/images/courses/bannerreactn.png'),
+  'rust': require('@/assets/images/courses/bannerrust.png'),
+  'webdev': require('@/assets/images/courses/bannerwebdev.png'),
+  default: require('@/assets/images/bannerj.png'),
 };
 function courseDetail() {
   const { courseParams } = useLocalSearchParams();
@@ -153,7 +153,7 @@ function courseDetail() {
         barStyle="light-content"
         backgroundColor="#0D47A1"
       />
-      <Ai/>
+      {/* <Ai/> */}
       <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}

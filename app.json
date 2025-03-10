@@ -29,17 +29,17 @@
     },
     "plugins": [
       "expo-router"
-      
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "JUDGE0_API_KEY": "your API key",
-      "GEMINI_API_KEY":"your API key",
+      "JUDGE0_API_KEY": "",
+      "GEMINI_API_KEY": "",
       "router": {
         "origin": false
       }
+      
+    }
   }
-}
 }
