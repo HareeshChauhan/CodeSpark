@@ -230,6 +230,7 @@ export default function EnrolledCoursesScreen() {
             renderItem={renderCourseItem}
             keyExtractor={(item) => item.courseTitle}
             contentContainerStyle={{ paddingBottom: 20 }}
+            showsHorizontalScrollIndicator={false}
           />
         </View>
       )}
@@ -300,6 +301,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     alignItems: 'center',
+    marginBottom:200
   },
   courseCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.75)',

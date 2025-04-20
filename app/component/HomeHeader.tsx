@@ -81,14 +81,12 @@ export default function HomeHeader() {
         style={styles.iconContainer}
         onPress={async () => {
           await playPopSound();
+          router.push('/screens/Notification');
           // Optionally handle notifications press here
         }}
       >
         <View style={styles.iconBadge}>
           <Ionicons name="notifications-outline" size={24} color="white" />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>0</Text>
-          </View>
         </View>
       </TouchableOpacity>
 
@@ -142,22 +140,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1976D2",
     padding: 10,
     borderRadius: 10,
-  },
-  badge: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "green",
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",

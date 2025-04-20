@@ -17,7 +17,7 @@ export default function RootLayout() {
   });
   const theme = useColorScheme();
   // const router = useRouter();
-  
+
   // Explicitly type userDetail as DocumentData or null
   const [userDetail, setUserDetail] = useState<DocumentData | null>(null);
 
@@ -44,10 +44,10 @@ export default function RootLayout() {
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
         {/* <StatusBar hidden /> */}
         <StatusBar
-  hidden={false}
-  barStyle="dark-content"
-  backgroundColor="#FFF"
-/>
+          hidden={false}
+          barStyle="dark-content"
+          backgroundColor="#FFF"
+        />
         <Stack screenOptions={{ headerShown: false }}>
           {/* Your routes or screens would go here */}
         </Stack>

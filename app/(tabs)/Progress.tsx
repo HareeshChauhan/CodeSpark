@@ -1,20 +1,19 @@
-import { 
-  View, 
-  Text, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  StyleSheet 
-} from 'react-native'; 
 import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth, db } from '@/config/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import Colors from '@/constants/Colors';
 import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { CircularProgress } from 'react-native-circular-progress';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 
@@ -32,6 +31,7 @@ interface Course {
   noOfChapter: string;
   chapters: Chapter[];
 }
+
 const courseImages: { [key: string]: any } = {
   'javaprogramming': require('@/assets/images/courses/bannerj.png'),
   'python': require('@/assets/images/courses/bannerpython.png'),
@@ -48,7 +48,8 @@ const courseImages: { [key: string]: any } = {
   'webdev': require('@/assets/images/courses/bannerwebdev.png'),
   default: require('@/assets/images/bannerj.png'),
 };
-function CourseProgressScreen() {
+
+export default function CourseProgressScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,167 +91,126 @@ function CourseProgressScreen() {
 
   const calculateProgress = (chapters: Chapter[]) => {
     const totalChapters = chapters.length;
-    const completedChapters = chapters.filter(chapter => chapter.completed).length;
+    const completedChapters = chapters.filter((ch) => ch.completed).length;
     const progressPercentage = totalChapters > 0 ? completedChapters / totalChapters : 0;
     return { completedChapters, totalChapters, progressPercentage };
   };
 
-  // Helper function to play pop sound
   const playPopSound = async () => {
     try {
-      const { sound } = await Audio.Sound.createAsync(
-        require('@/assets/sound/pop.mp3') // Adjust path if necessary
-      );
+      const { sound } = await Audio.Sound.createAsync(require('@/assets/sound/pop.mp3'));
       await sound.setVolumeAsync(0.3);
       await sound.playAsync();
-      setTimeout(() => {
-        sound.unloadAsync();
-      }, 1000);
+      setTimeout(() => sound.unloadAsync(), 1000);
     } catch (error) {
       console.error('Error playing pop sound:', error);
     }
   };
 
-  if (loading) {
-    return (
-      <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
-      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={async () => {
-            await playPopSound();
-            router.back();
-          }}
-        >
-          <View style={styles.iconBadge}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Course Progress</Text>
-      </LinearGradient>
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size={50} color={Colors.purple} />
-      </View>
-      </LinearGradient>
-    );
-  }
-
-  if (enrolledCourses.length === 0) {
-    return (
-      <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
-      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={async () => {
-            await playPopSound();
-            router.back();
-          }}
-        >
-          <View style={styles.iconBadge}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Course Progress</Text>
-      </LinearGradient>
-      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: '50%' }}>
-        <Entypo name="open-book" size={100} color={Colors.black} />
-        <Text style={{ fontFamily: 'outfit-bold', fontSize: 24, color: Colors.black, textAlign: 'center' }}>
-          You are not enrolled in any courses yet.
-        </Text>
-      </View>
-      </LinearGradient>
-    );
-  }
+  const renderHeader = () => (
+    <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
+      <TouchableOpacity
+        style={styles.iconContainer}
+        onPress={async () => {
+          await playPopSound();
+          router.back();
+        }}
+      >
+        <View style={styles.iconBadge}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </View>
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Course Progress</Text>
+    </LinearGradient>
+  );
 
   return (
     <LinearGradient colors={["rgb(142, 187, 255)", "rgb(252, 252, 252)"]} style={styles.container}>
-      <LinearGradient colors={["#0D47A1", "#1976D2"]} style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={async () => {
-            await playPopSound();
-            router.back();
-          }}
-        >
-          <View style={styles.iconBadge}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Course Progress</Text>
-      </LinearGradient>
+      {renderHeader()}
       <View style={styles.heroContainer}>
         <Text style={styles.Title}>See your real-time Course Progress</Text>
-        <Text style={styles.Subtitle}>
-          Your learning journey begins now! 🚀 First steps matter most
-        </Text>
+        <Text style={styles.Subtitle}>Your learning journey begins now! 🚀 First steps matter most</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {enrolledCourses.map(course => {
-          const { completedChapters, totalChapters, progressPercentage } = calculateProgress(course.chapters);
-          const imageKey = course.image ? course.image.trim().toLowerCase() : 'default';
-        const imageSource = courseImages[imageKey] || courseImages.default;
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : enrolledCourses.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Entypo name="open-book" size={100} color="gray" />
+            <Text style={styles.emptyText}>No courses found.</Text>
+          </View>
+        ) : (
+          enrolledCourses.map((course) => {
+            const { completedChapters, totalChapters, progressPercentage } = calculateProgress(course.chapters);
+            const imageKey = course.image?.trim().toLowerCase() || 'default';
+            const imageSource = courseImages[imageKey] || courseImages.default;
 
-          return (
-            <TouchableOpacity 
-              key={course.courseTitle} 
-              style={styles.courseContainer}
-              onPress={async () => {
-                await playPopSound();
-                await router.replace({
-                  pathname: '/courseView/courseDetail',
-                  params: { courseParams: JSON.stringify(course) },
-                });
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderRadius: 8 }}>
-                <Image
-                  source={imageSource}
-                  style={{ width: 100, height: 100, borderRadius: 8, marginRight: 15 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 18, fontFamily: 'outfit-bold' }}>
-                    {course.courseTitle}
-                  </Text>
-                  <Text numberOfLines={2} style={{ color: '#555', fontFamily: 'outfit' }}>
-                    {course.description}
-                  </Text>
-                  <View style={{ flexDirection: 'row', marginVertical: 7 }}>
-                    <Ionicons name="book-outline" size={20} color={Colors.purple} />
-                    <Text style={{ fontSize: 14, fontFamily: 'outfit', color: Colors.purple, marginLeft: 5 }}>
-                      {course.noOfChapter ? `${course.noOfChapter} Chapters` : 'No Chapters Available'}
+            return (
+              <TouchableOpacity
+                key={course.courseTitle}
+                style={styles.courseContainer}
+                onPress={async () => {
+                  await playPopSound();
+                  router.replace({
+                    pathname: '/courseView/courseDetail',
+                    params: { courseParams: JSON.stringify(course) },
+                  });
+                }}
+              >
+                <View style={styles.row}>
+                  <Image source={imageSource} style={styles.courseImage} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.courseTitle}>{course.courseTitle}</Text>
+                    <Text numberOfLines={2} style={styles.courseDescription}>
+                      {course.description}
                     </Text>
+                    <View style={styles.chapterRow}>
+                      <Ionicons name="book-outline" size={20} color={Colors.purple} />
+                      <Text style={styles.chapterText}>
+                        {course.noOfChapter ? `${course.noOfChapter} Chapters` : 'No Chapters'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <CircularProgress
-                size={45}
-                width={5}
-                fill={progressPercentage * 100}
-                tintColor={Colors.purple}
-                backgroundColor="rgb(241, 241, 241)"
-                style={styles.circularProgressContainer}
-              >
-                {() => (
-                  <Text style={{ color: Colors.black, fontFamily: 'outfit', fontSize: 12 }}>
-                    {Math.round(progressPercentage * 100)}%
-                  </Text>
-                )}
-              </CircularProgress>
-              <Text style={styles.progressText}>
-                {completedChapters} out of {totalChapters} chapters completed
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+                <Text style={styles.progressText}>
+                  {completedChapters} / {totalChapters} chapters completed ({Math.round(progressPercentage * 100)}%)
+                </Text>
+              </TouchableOpacity>
+            );
+          })
+        )}
       </ScrollView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  scrollContainer: { padding: 16 },
+  loadingContainer: { flex: 1, marginTop: '90%', alignItems: 'center' },
+  emptyContainer: { marginTop: '60%', alignItems: 'center' },
+  emptyText: {
+    fontFamily: 'outfit-bold',
+    fontSize: 24,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 10,
   },
+  courseContainer: {
+    backgroundColor: '#f2f2f2',
+    padding: 12,
+    marginBottom: 20,
+    borderRadius: 10,
+  },
+  row: { flexDirection: 'row', marginBottom: 10, alignItems: 'center' },
+  courseImage: { width: 100, height: 100, borderRadius: 8, marginRight: 12 },
+  courseTitle: { fontSize: 18, fontFamily: 'outfit-bold' },
+  courseDescription: { color: '#555', fontFamily: 'outfit', marginTop: 4 },
+  chapterRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  chapterText: { marginLeft: 5, fontSize: 14, color: Colors.purple, fontFamily: 'outfit' },
+  progressText: { fontSize: 16, color: Colors.purple, fontFamily: 'outfit-bold', marginTop: 8 },
   headerContainer: {
     paddingTop: 10,
     paddingHorizontal: 10,
@@ -260,13 +220,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 15,
     left: 20,
     zIndex: 1,
   },
   iconBadge: {
-    backgroundColor: "rgb(79, 149, 255)",
+    position: "relative",
+    backgroundColor: "#1976D2",
     padding: 8,
     borderRadius: 10,
   },
@@ -279,7 +240,7 @@ const styles = StyleSheet.create({
   heroContainer: {
     alignItems: 'center',
     marginTop: 20,
-    marginBottom:10,
+    marginBottom: 10,
     paddingHorizontal: 10,
   },
   Title: {
@@ -295,35 +256,4 @@ const styles = StyleSheet.create({
     color: Colors.black,
     textAlign: 'center',
   },
-  scrollContainer: {
-    marginTop: 10,
-    paddingBottom: 20,
-    backgroundColor: "rgba(255, 255, 255, 0)",
-  },
-  courseContainer: {
-    margin: 20,
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.56)',
-    borderRadius: 10,
-  },
-  circularProgressContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0)',
-    marginBottom: 10,
-    flexDirection: "row",
-    position: "absolute",
-    bottom: 0,
-    right: 10,
-  },
-  progressText: {
-    fontSize: 16,
-    color: Colors.purple,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });
-
-export default CourseProgressScreen;

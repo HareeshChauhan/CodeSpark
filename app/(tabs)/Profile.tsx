@@ -160,7 +160,7 @@ export default function ProfileScreen() {
           subtitle="Explore the important notifications" 
           onPress={async () => {
             await playPopSound();
-            router.push('/screens/myCourse');
+            router.push('/screens/Notification');
           }} 
         />
         <TouchableOpacity 

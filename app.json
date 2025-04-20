@@ -20,7 +20,23 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mr_sanak.CodeSpark",
+      "permissions": [
+        "NOTIFICATIONS",
+        "VIBRATE",
+        "INTERNET"
+      ],
+      "notification": {
+        "icon": "./assets/images/logo.png",
+        "color": "#0000FF",
+        "sound": true,
+        "priority": "high",
+        "channelId": "default",
+        "channelName": "default",
+        "channelDescription": "Default notification channel",
+        "channelImportance": "default"
+      }    
     },
     "web": {
       "bundler": "metro",
@@ -28,7 +44,16 @@
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -38,8 +63,10 @@
       "GEMINI_API_KEY": "",
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "4b067298-f08f-4d50-aeee-ac328837d555"
       }
-      
     }
   }
 }
